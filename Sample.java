@@ -1,6 +1,7 @@
 
 public class Sample {
 	int generalType;
+	String location;
 	String rockName;
 	String id;
 	String color;
@@ -19,11 +20,14 @@ public class Sample {
 	double size;
 	
 	// Constructor for everything
-	Sample(int generalType, String rockName, String id, String color, String composition, String texture, String structures, String rounding, 
-			String luster, String grainSize, String cleavage, String mineralSize, String otherFeatures, String fossilDescription, boolean fossilContent, double size) {
+	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture, String structures, String rounding,
+			String luster, String grainSize, String cleavage, String mineralSize, String otherFeatures, String fossilDescription, boolean fossilContent,
+		   	double size) {
 		this.generalType = generalType;
+		this.location = location;
 		this.rockName = rockName;
 		this.id = id;
+		this.color = color;
 		this.composition = composition;
 		this.texture = texture;
 		this.structures = structures;
@@ -39,11 +43,13 @@ public class Sample {
 	}
 	
 	// Igneous constructor
-	Sample(int generalType, String rockName, String id, String color, String composition, String texture, 
+	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture,
 			String structures, String luster, String cleavage, String mineralSize, String otherFeatures, double size) {
+		this.location = location;
 		this.generalType = generalType;
 		this.rockName = rockName;
 		this.id = id;
+		this.color = color;
 		this.composition = composition;
 		this.texture = texture;
 		this.structures = structures;
@@ -55,8 +61,22 @@ public class Sample {
 	}
 	
 	// Sedimentary constructor
-	Sample(int generalType, String rockName, String id, String color, String composition, String texture, String structures, String rounding, String grainSize, String otherFeatures, String fossilDescription, boolean fossilContent, double size) {
-		
+	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture, String structures,
+		   String rounding, String grainSize, String otherFeatures, String fossilDescription, boolean fossilContent, double size) {
+		this.location = location;
+		this.generalType = generalType;
+		this.rockName = rockName;
+		this.id = id;
+		this.color = color;
+		this.composition = composition;
+		this.texture = texture;
+		this.structures = structures;
+		this.rounding = rounding;
+		this.grainSize = grainSize;
+		this.otherFeatures = otherFeatures;
+		this.fossilContent = fossilContent;
+		this.fossilDescription = fossilDescription;
+		this.size = size;
 	}
 	
 	int getGeneralType() {
