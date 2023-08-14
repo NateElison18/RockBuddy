@@ -1,0 +1,33 @@
+.text-field {
+    -fx-max-width: 500;
+    -fx-background-color: gray;
+    -fx-text-fill: white;
+    -fx-font-size: 18;
+}
+.text-area {
+    -fx-max-width: 750;
+    text-area-background: gray ;
+    -fx-text-fill: white;
+    -fx-font-size: 18
+}
+.text-area .content {
+    -fx-background-color: text-area-background;
+}
+.container {
+    -fx-background-color: black;
+}
+.label {
+    -fx-text-fill: white;
+}
+.radio-button {
+    -fx-text-fill: white;
+}
+.check-box {
+    -fx-text-fill: white;
+}
+.scroll-pane {
+    -fx-background-color: black;
+}
+
+
+
