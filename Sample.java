@@ -1,6 +1,6 @@
 
 public class Sample {
-	int generalType;
+	int generalType; // 0 == sed, 1 == ign, 2 == meta
 	String location;
 	String rockName;
 	String id;
@@ -15,14 +15,14 @@ public class Sample {
 	String mineralSize;
 	String fossilDescription;
 	String otherFeatures;
+	String size;
 
 	boolean fossilContent;
-	double size;
-	
+
 	// Constructor for everything
-	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture, String structures, String rounding,
+	Sample(int generalType, String rockName, String id, String location, String color, String composition, String texture, String structures, String rounding,
 			String luster, String grainSize, String cleavage, String mineralSize, String otherFeatures, String fossilDescription, boolean fossilContent,
-		   	double size) {
+		   	String size) {
 		this.generalType = generalType;
 		this.location = location;
 		this.rockName = rockName;
@@ -44,7 +44,7 @@ public class Sample {
 	
 	// Igneous constructor
 	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture,
-			String structures, String luster, String cleavage, String mineralSize, String otherFeatures, double size) {
+			String structures, String luster, String cleavage, String mineralSize, String otherFeatures, String size) {
 		this.location = location;
 		this.generalType = generalType;
 		this.rockName = rockName;
@@ -62,7 +62,7 @@ public class Sample {
 	
 	// Sedimentary constructor
 	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture, String structures,
-		   String rounding, String grainSize, String otherFeatures, String fossilDescription, boolean fossilContent, double size) {
+		   String rounding, String grainSize, String otherFeatures, String fossilDescription, boolean fossilContent, String size) {
 		this.location = location;
 		this.generalType = generalType;
 		this.rockName = rockName;
@@ -112,7 +112,7 @@ public class Sample {
 	boolean getFossilContent() {
 		return fossilContent;
 	}	
-	double getSize() {
+	String getSize() {
 		return size;
 	}	
 }

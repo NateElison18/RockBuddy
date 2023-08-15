@@ -1,5 +1,6 @@
 .text-field {
     -fx-max-width: 500;
+    -fx-min-width: 400;
     -fx-background-color: gray;
     -fx-text-fill: white;
     -fx-font-size: 18;
@@ -27,6 +28,12 @@
 }
 .scroll-pane {
     -fx-background-color: black;
+}
+.split-pane:horizontal > .split-pane-divider {
+   -fx-background-color: transparent;
+}
+.split-pane:vertical > .split-pane-divider {
+   -fx-background-color: transparent;
 }
 
 
