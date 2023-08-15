@@ -1,6 +1,9 @@
+import java.util.ArrayList;
+import java.util.Date;
 
 public class Sample {
 	int generalType; // 0 == sed, 1 == ign, 2 == meta
+	String rockTypeString;
 	String location;
 	String rockName;
 	String id;
@@ -16,8 +19,11 @@ public class Sample {
 	String fossilDescription;
 	String otherFeatures;
 	String size;
+	//TODO implement imageFilePaths
+	ArrayList<String> imageFilePaths;
 
 	boolean fossilContent;
+	Date dateLogged;
 
 	// Constructor for everything
 	Sample(int generalType, String rockName, String id, String location, String color, String composition, String texture, String structures, String rounding,
@@ -40,6 +46,19 @@ public class Sample {
 		this.fossilContent = fossilContent;
 		this.fossilDescription = fossilDescription;
 		this.size = size;
+		dateLogged = new Date();
+
+		switch (generalType){
+			case 0:
+				rockTypeString = "Sedimentary";
+				break;
+			case 1:
+				rockTypeString = "Igneous";
+				break;
+			case 2:
+				rockTypeString = "Metamorphic";
+				break;
+		}
 	}
 	
 	// Igneous constructor

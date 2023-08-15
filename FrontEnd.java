@@ -1,8 +1,11 @@
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -11,18 +14,21 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.scene.control.CustomMenuItem;
 
-import javax.swing.*;
+
 import java.io.*;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
-
 
 public class FrontEnd extends Application{
 	BorderPane mainPane = new BorderPane();
 	int mainPaneSize = 320;
 	int addPaneSize = 1000;
+	int viewCollectionPaneSize = 600;
 	HashMap<String, Sample> collection = new HashMap<>();
 
 
@@ -436,6 +442,120 @@ public class FrontEnd extends Application{
 		return borderPane;
 	}
 
+	public BorderPane buildCollectionPane() {
+		BorderPane pane = new BorderPane();
+		Label title = new Label("Collection:");
+		TableView<Sample> tableView = new TableView<>();
+		StackPane centerPane = new StackPane(tableView);
+		ObservableList<Sample> collection = FXCollections.observableArrayList();
+		ArrayList<Sample> samplesArraylist = new ArrayList<>(this.collection.values());
+		TableColumn rockNameCl = new TableColumn("Name");
+		TableColumn rockIdCl = new TableColumn("Id");
+		TableColumn rockTypeCl = new TableColumn("Type");
+		TableColumn locationFoundCl = new TableColumn("Location Found");
+		TableColumn rockCompositionCl = new TableColumn("Composition");
+		TableColumn rockTextureCl = new TableColumn("Texture");
+		TableColumn rockStructureCl = new TableColumn("Structure");
+		TableColumn clastRoundingCl = new TableColumn("Clast Rounding");
+		TableColumn rockLusterCl = new TableColumn("Luster");
+		TableColumn mineralSizesCl = new TableColumn("Mineral Sizes");
+		TableColumn clastSizeCl = new TableColumn("Grain Sizes");
+		TableColumn mineralCleavagesCl = new TableColumn("Cleavages");
+		TableColumn rockSizeCl = new TableColumn("Sample Size");
+		TableColumn dateLoggedCl = new TableColumn("Date Logged");
+		TableColumn fossilContentCl = new TableColumn("Fossil Content?");
+
+		title.setPadding(new Insets(5));
+		title.setFont(new Font(18));
+		for (int i = 0; i < samplesArraylist.size(); i++)
+			collection.add(samplesArraylist.get(i));
+		tableView.setItems(collection);
+
+		rockNameCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("rockName"));
+		rockIdCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("id"));
+		rockTypeCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("rockTypeString"));
+		locationFoundCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("location"));
+		rockCompositionCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("composition"));
+		rockTextureCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("texture"));
+		rockStructureCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("structures"));
+		clastRoundingCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("rounding"));
+		rockLusterCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("luster"));
+		mineralSizesCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("mineralSize"));
+		clastSizeCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("grainSize"));
+		mineralCleavagesCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("cleavage"));
+		rockSizeCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("size"));
+		dateLoggedCl.setCellValueFactory(new PropertyValueFactory<Sample, Date>("dateLogged"));
+		fossilContentCl.setCellValueFactory(new PropertyValueFactory<Sample, Boolean>("fossilContent"));
+		rockNameCl.setMinWidth(100);
+		rockIdCl.setMinWidth(100);
+		rockTypeCl.setMinWidth(100);
+		locationFoundCl.setMinWidth(100);
+		rockCompositionCl.setMinWidth(100);
+		rockTextureCl.setMinWidth(100);
+		rockStructureCl.setMinWidth(100);
+		clastRoundingCl.setMinWidth(100);
+		rockLusterCl.setMinWidth(100);
+		mineralSizesCl.setMinWidth(100);
+		clastSizeCl.setMinWidth(100);
+		mineralCleavagesCl.setMinWidth(100);
+		rockSizeCl.setMinWidth(100);
+		dateLoggedCl.setMinWidth(100);
+		fossilContentCl.setMinWidth(100);
+
+		tableView.getColumns().addAll(rockNameCl, rockIdCl, rockTypeCl, locationFoundCl, rockCompositionCl,
+				rockTextureCl, rockStructureCl, clastRoundingCl, rockLusterCl, mineralSizesCl, clastSizeCl,
+				mineralCleavagesCl, rockSizeCl, dateLoggedCl, fossilContentCl);
+
+		// TODO build filter pane
+		HBox bottomPane = new HBox();
+		MenuButton columnsMenu = 			new MenuButton("Show/Hide Columns");
+		CustomMenuItem nameCb = 			new CustomMenuItem(new CheckBox("Name"));
+		CustomMenuItem idCb = 				new CustomMenuItem(new CheckBox("ID"));
+		CustomMenuItem typeCb = 			new CustomMenuItem(new CheckBox("Type"));
+		CustomMenuItem locationCb = 		new CustomMenuItem(new CheckBox("Location Found"));
+		CustomMenuItem compositionCb = 		new CustomMenuItem(new CheckBox("Composition"));
+		CustomMenuItem textureCb = 			new CustomMenuItem(new CheckBox("Texture"));
+		CustomMenuItem structureCb = 		new CustomMenuItem(new CheckBox("Structure"));
+		CustomMenuItem roundingCB = 		new CustomMenuItem(new CheckBox("Clast Rounding"));
+		CustomMenuItem lusterCb = 			new CustomMenuItem(new CheckBox("Luster"));
+		CustomMenuItem mineralSizeCb = 		new CustomMenuItem(new CheckBox("Mineral Sizes"));
+		CustomMenuItem grainSizesCb = 		new CustomMenuItem(new CheckBox("Grain Sizes"));
+		CustomMenuItem cleavagesCb = 		new CustomMenuItem(new CheckBox("Cleavages"));
+		CustomMenuItem sampleSizeCb = 		new CustomMenuItem(new CheckBox("Sample Size"));
+		CustomMenuItem dateCb = 			new CustomMenuItem(new CheckBox("Date Logged"));
+		CustomMenuItem fossilContentCb = 	new CustomMenuItem(new CheckBox("Fossil Content"));
+		MenuItem apply = 					new MenuItem("Apply");
+
+		nameCb.setHideOnClick(false);
+		idCb.setHideOnClick(false);
+		typeCb.setHideOnClick(false);
+		locationCb.setHideOnClick(false);
+		compositionCb.setHideOnClick(false);
+		textureCb.setHideOnClick(false);
+		structureCb.setHideOnClick(false);
+		roundingCB.setHideOnClick(false);
+		lusterCb.setHideOnClick(false);
+		mineralSizeCb.setHideOnClick(false);
+		grainSizesCb.setHideOnClick(false);
+		cleavagesCb.setHideOnClick(false);
+		sampleSizeCb.setHideOnClick(false);
+		dateCb.setHideOnClick(false);
+		fossilContentCb.setHideOnClick(false);
+
+		columnsMenu.getItems().addAll(nameCb, idCb, typeCb, locationCb, compositionCb, textureCb,
+				structureCb, roundingCB, lusterCb, mineralSizeCb, grainSizesCb, cleavagesCb,
+				sampleSizeCb, dateCb, fossilContentCb, apply);
+		bottomPane.getChildren().add(columnsMenu);
+
+		centerPane.setMaxWidth(1512);
+		bottomPane.setPadding(new Insets(5));
+		centerPane.setPadding(new Insets(5));
+		pane.setTop(title);
+		pane.setCenter(centerPane);
+		pane.setBottom(bottomPane);
+		return pane;
+	}
+
 	// TODO Menu action methods
 	public void addSample() throws FileNotFoundException {
 		BorderPane borderPane = buildAddSamplePane();
@@ -453,12 +573,22 @@ public class FrontEnd extends Application{
 		stage.setTitle("New Sample");
 		stage.show();
 	}
-
-	public void editSample() {
-
-	}
-
 	public void viewSamples() {
+		BorderPane borderPane = buildCollectionPane();
+		ScrollPane scrollPane = new ScrollPane(borderPane);
+		borderPane.getStyleClass().add("container");
+
+		borderPane.setMinWidth(viewCollectionPaneSize);
+		borderPane.setMinHeight(viewCollectionPaneSize);
+		Scene viewCollectionScene = new Scene(borderPane, viewCollectionPaneSize * 2, viewCollectionPaneSize);
+		Stage stage = new Stage();
+
+//		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
+		stage.setScene(viewCollectionScene);
+		stage.setTitle("View Collection");
+		stage.show();
+	}
+	public void editSample() {
 
 	}
 

@@ -35,6 +35,15 @@
 .split-pane:vertical > .split-pane-divider {
    -fx-background-color: transparent;
 }
+.table-view .column-header,
+.table-view .column-header .filler,
+.table-view .column-header-background .filler {
+   -fx-background-color: gray;
+
+}
+.table-view .column-header {
+    -fx-min-width: 300;
+}
 
 
 
