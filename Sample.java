@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Sample {
-	int generalType; // 0 == sed, 1 == ign, 2 == meta
+	int generalType; // 0 == sed, 1 == ign, 2 == meta, 3 == unknown
 	String rockTypeString;
 	String location;
 	String rockName;
@@ -20,15 +20,17 @@ public class Sample {
 	String otherFeatures;
 	String size;
 	//TODO implement imageFilePaths
-	ArrayList<String> imageFilePaths;
+	ArrayList<SamplePhoto> samplePhotos;
 
 	boolean fossilContent;
 	Date dateLogged;
 
+	Sample(){}
+
 	// Constructor for everything
 	Sample(int generalType, String rockName, String id, String location, String color, String composition, String texture, String structures, String rounding,
 			String luster, String grainSize, String cleavage, String mineralSize, String otherFeatures, String fossilDescription, boolean fossilContent,
-		   	String size) {
+		   	String size, ArrayList<SamplePhoto> samplePhotos) {
 		this.generalType = generalType;
 		this.location = location;
 		this.rockName = rockName;
@@ -46,6 +48,7 @@ public class Sample {
 		this.fossilContent = fossilContent;
 		this.fossilDescription = fossilDescription;
 		this.size = size;
+		this.samplePhotos = samplePhotos;
 		dateLogged = new Date();
 
 		switch (generalType){
@@ -133,5 +136,20 @@ public class Sample {
 	}	
 	String getSize() {
 		return size;
-	}	
+	}
+	public String getLocation() {
+		return location;
+	}
+
+	public String getRockName() {
+		return rockName;
+	}
+
+	public String getFossilDescription() {
+		return fossilDescription;
+	}
+
+	public String getColor() {
+		return color;
+	}
 }
