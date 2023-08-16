@@ -1,3 +1,4 @@
+import com.sun.tools.javac.comp.Check;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,6 +30,7 @@ public class FrontEnd extends Application{
 	int mainPaneSize = 320;
 	int addPaneSize = 1000;
 	int viewCollectionPaneSize = 600;
+	int viewCollectionPaneWidth = 1200;
 	HashMap<String, Sample> collection = new HashMap<>();
 
 
@@ -52,7 +54,8 @@ public class FrontEnd extends Application{
 
 	public void buildTopPane() {
 		Label title = new Label("Rock Buddy");
-		Label subTitle = new Label("Your rock collection companion app.\nAdd, edit, and view samples in your collection!");
+		Label subTitle = new Label("Your rock collection companion app.\n" +
+				"Add, edit, and view samples in your collection!");
 		MenuBar menuBar = new MenuBar();
 		Menu menu = new Menu("Menu");
 		MenuItem add = new MenuItem("Add Sample");
@@ -446,7 +449,9 @@ public class FrontEnd extends Application{
 		BorderPane pane = new BorderPane();
 		Label title = new Label("Collection:");
 		TableView<Sample> tableView = new TableView<>();
-		StackPane centerPane = new StackPane(tableView);
+		StackPane tablePane = new StackPane(tableView);
+		ScrollPane scrollPane = new ScrollPane(tablePane);
+		StackPane centerPane = new StackPane(scrollPane);
 		ObservableList<Sample> collection = FXCollections.observableArrayList();
 		ArrayList<Sample> samplesArraylist = new ArrayList<>(this.collection.values());
 		TableColumn rockNameCl = new TableColumn("Name");
@@ -502,29 +507,58 @@ public class FrontEnd extends Application{
 		dateLoggedCl.setMinWidth(100);
 		fossilContentCl.setMinWidth(100);
 
+
+
 		tableView.getColumns().addAll(rockNameCl, rockIdCl, rockTypeCl, locationFoundCl, rockCompositionCl,
-				rockTextureCl, rockStructureCl, clastRoundingCl, rockLusterCl, mineralSizesCl, clastSizeCl,
-				mineralCleavagesCl, rockSizeCl, dateLoggedCl, fossilContentCl);
+				rockTextureCl, rockStructureCl, rockSizeCl, fossilContentCl);
+		tableView.setMaxWidth(902);
 
 		// TODO build filter pane
 		HBox bottomPane = new HBox();
+		CheckBox name = new CheckBox("Name");
+		CheckBox id = new CheckBox("Id");
+		CheckBox type = new CheckBox("Type");
+		CheckBox location = new CheckBox("Location Found");
+		CheckBox composition = new CheckBox("Composition");
+		CheckBox textures = new CheckBox("Textures");
+		CheckBox structures = new CheckBox("Structures");
+		CheckBox rounding = new CheckBox("Rounding");
+		CheckBox luster = new CheckBox("Luster");
+		CheckBox mineralSize = new CheckBox("Mineral Size");
+		CheckBox grainSize = new CheckBox("Grain Size");
+		CheckBox cleavages = new CheckBox("Cleavages");
+		CheckBox date = new CheckBox("Date Logged");
+
+		CheckBox fossilContent = new CheckBox("Fossil Content");
+		CheckBox size = new CheckBox("Size");
+
 		MenuButton columnsMenu = 			new MenuButton("Show/Hide Columns");
-		CustomMenuItem nameCb = 			new CustomMenuItem(new CheckBox("Name"));
-		CustomMenuItem idCb = 				new CustomMenuItem(new CheckBox("ID"));
-		CustomMenuItem typeCb = 			new CustomMenuItem(new CheckBox("Type"));
-		CustomMenuItem locationCb = 		new CustomMenuItem(new CheckBox("Location Found"));
-		CustomMenuItem compositionCb = 		new CustomMenuItem(new CheckBox("Composition"));
-		CustomMenuItem textureCb = 			new CustomMenuItem(new CheckBox("Texture"));
-		CustomMenuItem structureCb = 		new CustomMenuItem(new CheckBox("Structure"));
-		CustomMenuItem roundingCB = 		new CustomMenuItem(new CheckBox("Clast Rounding"));
-		CustomMenuItem lusterCb = 			new CustomMenuItem(new CheckBox("Luster"));
-		CustomMenuItem mineralSizeCb = 		new CustomMenuItem(new CheckBox("Mineral Sizes"));
-		CustomMenuItem grainSizesCb = 		new CustomMenuItem(new CheckBox("Grain Sizes"));
-		CustomMenuItem cleavagesCb = 		new CustomMenuItem(new CheckBox("Cleavages"));
-		CustomMenuItem sampleSizeCb = 		new CustomMenuItem(new CheckBox("Sample Size"));
-		CustomMenuItem dateCb = 			new CustomMenuItem(new CheckBox("Date Logged"));
-		CustomMenuItem fossilContentCb = 	new CustomMenuItem(new CheckBox("Fossil Content"));
+		CustomMenuItem nameCb = 			new CustomMenuItem(name);
+		CustomMenuItem idCb = 				new CustomMenuItem(id);
+		CustomMenuItem typeCb = 			new CustomMenuItem(type);
+		CustomMenuItem locationCb = 		new CustomMenuItem(location);
+		CustomMenuItem compositionCb = 		new CustomMenuItem(composition);
+		CustomMenuItem textureCb = 			new CustomMenuItem(textures);
+		CustomMenuItem structureCb = 		new CustomMenuItem(structures);
+		CustomMenuItem roundingCB = 		new CustomMenuItem(rounding);
+		CustomMenuItem lusterCb = 			new CustomMenuItem(luster);
+		CustomMenuItem mineralSizeCb = 		new CustomMenuItem(mineralSize);
+		CustomMenuItem grainSizesCb = 		new CustomMenuItem(grainSize);
+		CustomMenuItem cleavagesCb = 		new CustomMenuItem(cleavages);
+		CustomMenuItem sampleSizeCb = 		new CustomMenuItem(size);
+		CustomMenuItem dateCb = 			new CustomMenuItem(date);
+		CustomMenuItem fossilContentCb = 	new CustomMenuItem(fossilContent);
 		MenuItem apply = 					new MenuItem("Apply");
+
+		name.setSelected(true);
+		id.setSelected(true);
+		type.setSelected(true);
+		location.setSelected(true);
+		composition.setSelected(true);
+		textures.setSelected(true);
+		structures.setSelected(true);
+		fossilContent.setSelected(true);
+		size.setSelected(true);
 
 		nameCb.setHideOnClick(false);
 		idCb.setHideOnClick(false);
@@ -545,8 +579,137 @@ public class FrontEnd extends Application{
 		columnsMenu.getItems().addAll(nameCb, idCb, typeCb, locationCb, compositionCb, textureCb,
 				structureCb, roundingCB, lusterCb, mineralSizeCb, grainSizesCb, cleavagesCb,
 				sampleSizeCb, dateCb, fossilContentCb, apply);
-		bottomPane.getChildren().add(columnsMenu);
 
+		// Build filter elements TODO is this redundant?
+		VBox filtersBox = new VBox();
+		Label filterLb = new Label("Filters:");
+		HBox radioButtonBox = new HBox();
+		RadioButton sedRb = new RadioButton("Sedimentary");
+		RadioButton metaRb = new RadioButton("Metamorphic");
+		RadioButton ignRb = new RadioButton("Igneous");
+		RadioButton unkRb = new RadioButton("Unknown");
+		RadioButton allRb = new RadioButton("All");
+		ToggleGroup typeTG = new ToggleGroup();
+		CheckBox filterFossilContent = new CheckBox("Fossil Content");
+
+		sedRb.setToggleGroup(typeTG);
+		metaRb.setToggleGroup(typeTG);
+		ignRb.setToggleGroup(typeTG);
+		unkRb.setToggleGroup(typeTG);
+		allRb.setToggleGroup(typeTG);
+		allRb.setSelected(true);
+		radioButtonBox.getChildren().addAll(sedRb, metaRb, ignRb, unkRb, allRb, filterFossilContent);
+		radioButtonBox.setSpacing(5);
+
+		filtersBox.getChildren().addAll(filterLb, radioButtonBox);
+		filtersBox.setAlignment(Pos.TOP_LEFT);
+		filtersBox.setSpacing(5);
+
+		Button editBt = new Button("Edit");
+		Button deleteBt = new Button("Remove");
+		HBox buttonHbox = new HBox();
+
+		buttonHbox.getChildren().addAll(editBt, deleteBt);
+		buttonHbox.setAlignment(Pos.BOTTOM_RIGHT);
+		buttonHbox.setSpacing(15);
+		buttonHbox.setTranslateX(320);
+
+		columnsMenu.setAlignment(Pos.BOTTOM_LEFT);
+		bottomPane.getChildren().addAll(columnsMenu, filtersBox, buttonHbox);
+		bottomPane.setMinWidth(viewCollectionPaneWidth);
+		bottomPane.setSpacing(50);
+
+		// Show/Hide columns Apply action
+		apply.setOnAction(event -> {
+			int count = 0;
+			tableView.getColumns().clear();
+			if (name.isSelected()){
+				count++;
+				tableView.getColumns().add(rockNameCl);
+			}
+			if (id.isSelected()){
+				count++;
+				tableView.getColumns().add(rockIdCl);
+			}
+			if (type.isSelected()){
+				count++;
+				tableView.getColumns().add(rockTypeCl);
+			}
+			if (location.isSelected()){
+				count++;
+				tableView.getColumns().add(locationFoundCl);
+			}
+			if (composition.isSelected()){
+				count++;
+				tableView.getColumns().add(rockCompositionCl);
+			}
+			if (textures.isSelected()){
+				count++;
+				tableView.getColumns().add(rockTextureCl);
+			}
+			if (structures.isSelected()){
+				count++;
+				tableView.getColumns().add(rockStructureCl);
+			}
+			if (rounding.isSelected()){
+				count++;
+				tableView.getColumns().add(clastRoundingCl);
+			}
+			if (luster.isSelected()){
+				count++;
+				tableView.getColumns().add(rockLusterCl);
+			}
+			if (mineralSize.isSelected()){
+				count++;
+				tableView.getColumns().add(mineralSizesCl);
+			}
+			if (grainSize.isSelected()){
+				count++;
+				tableView.getColumns().add(clastSizeCl);
+			}
+			if (cleavages.isSelected()){
+				count++;
+				tableView.getColumns().add(mineralCleavagesCl);
+			}
+			if (size.isSelected()){
+				count++;
+				tableView.getColumns().add(rockSizeCl);
+			}
+			if (date.isSelected()){
+				count++;
+				tableView.getColumns().add(dateLoggedCl);
+			}
+			if (fossilContent.isSelected()){
+				count++;
+				tableView.getColumns().add(fossilContentCl);
+			}
+			tableView.setMaxWidth(count * 100.3);
+			if (count < 12) {
+				scrollPane.setFitToWidth(true);
+				scrollPane.setFitToHeight(true);
+			}
+			else {
+				scrollPane.setFitToHeight(false);
+				scrollPane.setFitToWidth(false);
+			}
+			tableView.setMinHeight(scrollPane.getHeight());
+		});
+
+		// TODO Edit/remove buttons action
+		editBt.setOnAction(event -> editSample());
+		deleteBt.setOnAction(event -> {
+			//		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
+			VBox areYouSurePane = areYouSurePane();
+			Scene areYouSure = new Scene(areYouSurePane);
+			Stage stage = new Stage();
+			stage.setScene(areYouSure);
+			stage.setTitle("Remove Sample");
+			stage.show();
+		});
+
+		scrollPane.setFitToWidth(true);
+		scrollPane.setFitToHeight(true);
+		tableView.setMinHeight(scrollPane.getHeight());
 		centerPane.setMaxWidth(1512);
 		bottomPane.setPadding(new Insets(5));
 		centerPane.setPadding(new Insets(5));
@@ -580,7 +743,7 @@ public class FrontEnd extends Application{
 
 		borderPane.setMinWidth(viewCollectionPaneSize);
 		borderPane.setMinHeight(viewCollectionPaneSize);
-		Scene viewCollectionScene = new Scene(borderPane, viewCollectionPaneSize * 2, viewCollectionPaneSize);
+		Scene viewCollectionScene = new Scene(borderPane, viewCollectionPaneWidth, viewCollectionPaneSize);
 		Stage stage = new Stage();
 
 //		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
@@ -640,6 +803,38 @@ public class FrontEnd extends Application{
 		return vBox;
 	}
 
+	public VBox areYouSurePane() {
+		VBox vBox = new VBox();
+		Label areYouSureLb = new Label("Are you sure you want to delete this sample?");
+		Label finalLb = new Label("This cannot be undone.");
+		VBox labelBox = new VBox();
+		Button deleteBt = new Button("Delete");
+		Button noGoBackBt = new Button("No, wait!");
+		HBox buttonBox = new HBox();
+
+		labelBox.getChildren().addAll(areYouSureLb, finalLb);
+		labelBox.setSpacing(2);
+		buttonBox.getChildren().addAll(deleteBt, noGoBackBt);
+		buttonBox.setSpacing(20);
+		vBox.getChildren().addAll(labelBox, buttonBox);
+		vBox.setSpacing(10);
+		vBox.setAlignment(Pos.CENTER_LEFT);
+		vBox.setPadding(new Insets(15));
+		areYouSureLb.setFont(new Font(14));
+		finalLb.setFont(new Font(14));
+
+		noGoBackBt.setOnAction(event -> {
+			Stage stage = (Stage) noGoBackBt.getScene().getWindow();
+			stage.close();
+		});
+
+		//TODO delete action
+		deleteBt.setOnAction(event -> {
+
+		});
+
+		return vBox;
+	}
 
 
 }
