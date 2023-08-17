@@ -64,43 +64,44 @@ public class Sample {
 		}
 	}
 	
-	// Igneous constructor
-	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture,
-			String structures, String luster, String cleavage, String mineralSize, String otherFeatures, String size) {
-		this.location = location;
-		this.generalType = generalType;
-		this.rockName = rockName;
-		this.id = id;
-		this.color = color;
-		this.composition = composition;
-		this.texture = texture;
-		this.structures = structures;
-		this.luster = luster;
-		this.cleavage = cleavage;
-		this.mineralSize = mineralSize;
-		this.otherFeatures = otherFeatures;
-		this.size = size;
-	}
-	
-	// Sedimentary constructor
-	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture, String structures,
-		   String rounding, String grainSize, String otherFeatures, String fossilDescription, boolean fossilContent, String size) {
-		this.location = location;
-		this.generalType = generalType;
-		this.rockName = rockName;
-		this.id = id;
-		this.color = color;
-		this.composition = composition;
-		this.texture = texture;
-		this.structures = structures;
-		this.rounding = rounding;
-		this.grainSize = grainSize;
-		this.otherFeatures = otherFeatures;
-		this.fossilContent = fossilContent;
-		this.fossilDescription = fossilDescription;
-		this.size = size;
-	}
-	
+//	// Igneous constructor
+//	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture,
+//			String structures, String luster, String cleavage, String mineralSize, String otherFeatures, String size) {
+//		this.location = location;
+//		this.generalType = generalType;
+//		this.rockName = rockName;
+//		this.id = id;
+//		this.color = color;
+//		this.composition = composition;
+//		this.texture = texture;
+//		this.structures = structures;
+//		this.luster = luster;
+//		this.cleavage = cleavage;
+//		this.mineralSize = mineralSize;
+//		this.otherFeatures = otherFeatures;
+//		this.size = size;
+//	}
+//
+//	// Sedimentary constructor
+//	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture, String structures,
+//		   String rounding, String grainSize, String otherFeatures, String fossilDescription, boolean fossilContent, String size) {
+//		this.location = location;
+//		this.generalType = generalType;
+//		this.rockName = rockName;
+//		this.id = id;
+//		this.color = color;
+//		this.composition = composition;
+//		this.texture = texture;
+//		this.structures = structures;
+//		this.rounding = rounding;
+//		this.grainSize = grainSize;
+//		this.otherFeatures = otherFeatures;
+//		this.fossilContent = fossilContent;
+//		this.fossilDescription = fossilDescription;
+//		this.size = size;
+//	}
+
+	// Getters
 	int getGeneralType() {
 		return generalType;
 	}
@@ -140,16 +141,19 @@ public class Sample {
 	public String getLocation() {
 		return location;
 	}
-
 	public String getRockName() {
 		return rockName;
 	}
-
 	public String getFossilDescription() {
 		return fossilDescription;
 	}
-
 	public String getColor() {
 		return color;
+	}
+	public String getOtherFeatures() {
+		return otherFeatures;
+	}
+	public ArrayList<SamplePhoto> getSamplePhotos() {
+		return samplePhotos;
 	}
 }

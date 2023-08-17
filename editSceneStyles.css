@@ -50,6 +50,8 @@
 .scroll-pane {
    -fx-background-color: black;
 }
-
+.split-pane {
+    -fx-background-color: black;
+}
 
 

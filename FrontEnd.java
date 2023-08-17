@@ -31,6 +31,7 @@ public class FrontEnd extends Application{
 	int viewCollectionPaneSize = 600;
 	int viewCollectionPaneWidth = 1200;
 	HashMap<String, Sample> collection = new HashMap<>();
+	Sample selectedSample = new Sample();
 
 
 	public static void main(String[] args) {
@@ -81,7 +82,9 @@ public class FrontEnd extends Application{
 				throw new RuntimeException(e);
 			}
 		});
-		edit.setOnAction(event -> editSample());
+		edit.setOnAction(event -> {
+			selectASample();
+		});
 		view.setOnAction(event -> viewCollection());
 		exit.setOnAction(event -> System.exit(0));
 	}
@@ -110,7 +113,9 @@ public class FrontEnd extends Application{
 				e.printStackTrace();
 			}
 		});
-		editSampleBt.setOnAction(event -> editSample());
+		editSampleBt.setOnAction(event -> {
+			selectASample();
+		});
 		viewCollectionBt.setOnAction(event -> viewCollection());
 		exitBt.setOnAction(event -> System.exit(0));
 	}
@@ -133,26 +138,6 @@ public class FrontEnd extends Application{
 		GridPane gridPane = new GridPane();
 		Label addSample = new Label("Add New Find:");
 		addSample.setFont(Font.font(18));
-
-		// Labels
-//		Label locationFoundLb = new Label("Found:");
-//		Label idLb = new Label("Id:");
-//		Label nameLb = new Label("Name:");
-//		Label colorLb = new Label("Color:");
-//		Label compositionLb = new Label("Composition:");
-//		Label textureLb = new Label("Texture:");
-//		Label structuresLb = new Label("Structures:");
-//		Label roundingLb = new Label("Rounding:");
-//		Label lusterLb = new Label("Luster:");
-//		Label grainSizeLb = new Label("Grain Size:");
-//		Label cleavageLb = new Label("Cleavage:");
-//		Label mineralSizeLb = new Label("Mineral Size:");
-//		Label fossilDescriptionLb = new Label("Fossil descriptions:");
-//		Label sizeLb = new Label("Size:");
-//		Label otherFeaturesLb = new Label("Other Cool Features:");
-
-
-
 		// Inputs
 		RadioButton igneousRb = new RadioButton("Igneous");
 		RadioButton sedRb = new RadioButton("Sedimentary");
@@ -715,7 +700,9 @@ public class FrontEnd extends Application{
 		});
 
 		// TODO Edit/remove buttons action
-		editBt.setOnAction(event -> editSample());
+		editBt.setOnAction(event -> {
+			selectASample();
+		});
 		deleteBt.setOnAction(event -> {
 			//		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
 			VBox areYouSurePane = areYouSurePane();
@@ -744,9 +731,10 @@ public class FrontEnd extends Application{
 		ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
 		Insets padding = new Insets(5);
 		BorderPane borderPane = new BorderPane();
+		borderPane.getStyleClass().add("container");
 		GridPane gridPane = new GridPane();
-		Label addSample = new Label("Add New Find:");
-		addSample.setFont(Font.font(18));
+		Label editSample = new Label("Edit Sample:");
+		editSample.setFont(Font.font(18));
 
 		// Labels
 		Label nameLb = new Label("Name:");
@@ -827,7 +815,7 @@ public class FrontEnd extends Application{
 		mineralSizeTf.setText(sample.getMineralSize());
 		fossilDescriptionTf.setText(sample.getFossilDescription());
 		sizeTf.setText(sample.getSize());
-		//TODO otherFeatures.setText();
+		otherFeatures.setText(sample.getOtherFeatures());
 		otherFeatures.setWrapText(true);
 
 		// VBoxes to hold labels and TFs
@@ -847,24 +835,46 @@ public class FrontEnd extends Application{
 		VBox sizeBox = new VBox();
 		VBox otherFeaturesBox = new VBox();
 
+		nameBox.getChildren().addAll(nameLb, nameTf);
+		idBox.getChildren().addAll(idLb, idTf);
+		locationBox.getChildren().addAll(locationFoundLb, locationFoundTF);
+		colorBox.getChildren().addAll(colorLb, colorTf);
+		compositionBox.getChildren().addAll(compositionLb, compositionTf);
+		textureBox.getChildren().addAll(textureLb, textureTf);
+		structuresBox.getChildren().addAll(structuresLb, structuresTf);
+		roundingBox.getChildren().addAll(roundingLb, roundingTf);
+		lusterBox.getChildren().addAll(lusterLb, lusterTf);
+		grainSizeBox.getChildren().addAll(grainSizeLb, grainSizeTf);
+		cleavageBox.getChildren().addAll(cleavageLb, cleavageTf);
+		mineralSizeBox.getChildren().addAll(mineralSizeLb, mineralSizeTf);
+		fossilDescriptionBox.getChildren().addAll(fossilDescriptionLb, fossilDescriptionTf);
+		sizeBox.getChildren().addAll(sizeLb, sizeTf);
+		otherFeaturesBox.getChildren().addAll(otherFeaturesLb, otherFeatures);
+
 		HBox rockTypesPane = new HBox();
 		VBox leftCenterPane = new VBox();
 		SplitPane centerPane = new SplitPane();
 		leftCenterPane.getChildren().addAll(rockTypesPane, fossilContent, gridPane);
-		gridPane.addColumn(0, locationFoundTF, idTf, nameTf, colorTf, compositionTf,
-				textureTf, structuresTf, roundingTf, lusterTf, grainSizeTf, cleavageTf, mineralSizeTf,
-				sizeTf);
+
+		gridPane.addColumn(0, nameBox, idBox, locationBox, colorBox, compositionBox, textureBox,
+				structuresBox, roundingBox, lusterBox, grainSizeBox, cleavageBox, mineralSizeBox, fossilDescriptionBox, sizeBox);
 
 		rockTypesPane.getChildren().addAll(igneousRb, metaRb, sedRb, unknownRb);
 
 		// Build picture pane
 		BorderPane rightPane = new BorderPane();
-		Label addImage = new Label("Add Sample Photo");
+		Label addImage = new Label("Add New Photo");
 		addImage.setFont(new Font(16));
-		String fileName = "Images/placeholder.jpg";
-		FileInputStream imageInputStream = new FileInputStream(new File(fileName));
+		FileInputStream imageInputStream = null;
+		try {
+			String fileName = "Images/" + sample.getSamplePhotos().get(0).photoPathName;
+			imageInputStream = new FileInputStream(new File(fileName));
+		}
+		catch (FileNotFoundException | NullPointerException e) {
+			String fileName = "Images/placeholder.jpg";
+			imageInputStream = new FileInputStream(new File(fileName));
+		}
 		Image image = new Image(imageInputStream);
-		System.out.println("W: " + image.getWidth() + "H: " + image.getHeight());
 		ImageView imageView = new ImageView(image);
 		Button photoSubmitBt = new Button("Add photo");
 		TextField newImageFileName = new TextField();
@@ -874,10 +884,13 @@ public class FrontEnd extends Application{
 				"You can add multiple images to one sample.");
 		addImageInstructions.setWrapText(true);
 		addImageInstructions.setMaxWidth(image.getWidth());
+		imageView.setFitHeight(360);
+		imageView.setFitWidth(360);
 
 		VBox picturePaneHeader = new VBox();
 		picturePaneHeader.getChildren().addAll(addImage, addImageInstructions);
 		picturePaneHeader.setAlignment(Pos.CENTER_LEFT);
+		picturePaneHeader.setPadding(new Insets(5));
 
 		imageDescription.setPromptText("Add photo caption");
 		newImageFileName.setPromptText("Photo file name");
@@ -900,6 +913,130 @@ public class FrontEnd extends Application{
 		rightPane.setMaxWidth(addPaneSize/2);
 		rightPane.setPrefWidth(addPaneSize/2);
 		rightPane.setMinWidth(addPaneSize/2);
+
+		HBox bottomPane = new HBox();
+		Button applyBt = new Button("Apply Changes");
+
+		bottomPane.getChildren().addAll(otherFeaturesBox, applyBt);
+		bottomPane.setAlignment(Pos.CENTER_LEFT);
+		bottomPane.setSpacing(30);
+		bottomPane.setPadding(new Insets(5));
+
+		// Formatting
+		leftCenterPane.setAlignment(Pos.TOP_LEFT);
+		gridPane.setVgap(vGap);
+		gridPane.setHgap(hGap);
+		leftCenterPane.setPadding(padding);
+		leftCenterPane.setSpacing(vGap);
+		rockTypesPane.setSpacing(hGap);
+		fossilContent.setAlignment(Pos.CENTER_LEFT);
+
+		//TODO Set Actions
+		// Set actions
+		fossilContent.setOnAction(event -> {
+			if (unknownRb.isSelected()) {
+				if (fossilContent.isSelected()) {
+					gridPane.getChildren().clear();
+					gridPane.addColumn(0, nameTf, idTf, locationFoundTF,  colorTf, compositionTf,
+							textureTf, structuresTf, roundingTf, lusterTf, grainSizeTf, cleavageTf, mineralSizeTf,
+							fossilDescriptionTf, sizeTf);
+				}
+				else {
+					gridPane.getChildren().clear();
+					gridPane.addColumn(0, nameTf,  idTf, locationFoundTF, colorTf, compositionTf,
+							textureTf, structuresTf, roundingTf, lusterTf, grainSizeTf, cleavageTf, mineralSizeTf,
+							sizeTf);
+				}
+			}
+			// Only sedimentary textfields to display
+			else {
+				if (fossilContent.isSelected()) {
+					gridPane.getChildren().clear();
+					gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+							textureTf, structuresTf, roundingTf, grainSizeTf,
+							fossilDescriptionTf, sizeTf);
+				}
+				else {
+					gridPane.getChildren().clear();
+					gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+							textureTf, structuresTf, roundingTf, grainSizeTf, sizeTf);
+				}
+
+			}
+
+
+		});
+
+		sedRb.setOnAction(event -> {
+			gridPane.getChildren().clear();
+			gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+					textureTf, structuresTf, roundingTf, grainSizeTf, sizeTf);
+			// Re-add fossilContent checkbox if needed
+			leftCenterPane.getChildren().clear();
+			leftCenterPane.getChildren().addAll(rockTypesPane, fossilContent, gridPane);
+
+			if (fossilContent.isSelected()) {
+				gridPane.getChildren().clear();
+				gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+						textureTf, structuresTf, roundingTf, grainSizeTf, fossilDescriptionTf, sizeTf);
+			}
+		});
+
+		igneousRb.setOnAction(event -> {
+			gridPane.getChildren().clear();
+			gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+					textureTf, structuresTf, lusterTf, cleavageTf, mineralSizeTf, sizeTf);
+			leftCenterPane.getChildren().remove(fossilContent);
+		});
+
+		metaRb.setOnAction(event -> {
+			gridPane.getChildren().clear();
+			gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+					textureTf, structuresTf, lusterTf, cleavageTf, mineralSizeTf, sizeTf);
+			leftCenterPane.getChildren().remove(fossilContent);
+		});
+
+		unknownRb.setOnAction(event -> {
+			gridPane.getChildren().clear();
+			gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+					textureTf, structuresTf, roundingTf, lusterTf, grainSizeTf, cleavageTf, mineralSizeTf,
+					sizeTf);
+			// Re-add fossilContent checkbox if needed
+			leftCenterPane.getChildren().clear();
+			leftCenterPane.getChildren().addAll(rockTypesPane, fossilContent, gridPane);
+
+			if (fossilContent.isSelected()) {
+				gridPane.getChildren().clear();
+				gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
+						textureTf, structuresTf, roundingTf, lusterTf, grainSizeTf, cleavageTf, mineralSizeTf,
+						fossilDescriptionTf, sizeTf);
+			}
+		});
+
+		photoSubmitBt.setOnAction(event -> {
+			try{
+				String filePath = "Images/" + newImageFileName.getText();
+				String imageCaption = imageDescription.getText();
+				FileInputStream updatedImageInputStream = new FileInputStream(new File(filePath));
+				Image updatedImage = new Image(updatedImageInputStream);
+				imageView.setFitHeight(360);
+				imageView.setFitWidth(360);
+				imageView.setImage(updatedImage);
+				samplePhotos.add(new SamplePhoto(filePath, imageCaption));
+
+				addPhotoWindow(true);
+
+			}
+			catch (FileNotFoundException e) {
+				addPhotoWindow(false);
+			}
+		});
+
+
+		centerPane.getItems().addAll(leftCenterPane, rightPane);
+		borderPane.setTop(editSample);
+		borderPane.setCenter(centerPane);
+		borderPane.setBottom(bottomPane);
 		return borderPane;
 	}
 
@@ -935,21 +1072,22 @@ public class FrontEnd extends Application{
 		stage.setTitle("View Collection");
 		stage.show();
 	}
-	public void editSample() {
-//		Sample sample = selectASample();
-//
-////		BorderPane borderPane = buildEditSamplePane(sample);
-//		borderPane.getStyleClass().add("container");
-//
-//		borderPane.setMinWidth(addPaneSize);
-//		borderPane.setMinHeight(addPaneSize);
-//		Scene viewCollectionScene = new Scene(borderPane, addPaneSize + 15, addPaneSize);
-//		Stage stage = new Stage();
-//
-////		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
-//		stage.setScene(viewCollectionScene);
-//		stage.setTitle("View Collection");
-////		stage.show();
+	public void editSample() throws FileNotFoundException, InterruptedException {
+
+		BorderPane borderPane = buildEditSamplePane(selectedSample);
+		ScrollPane scrollPane = new ScrollPane(borderPane);
+		scrollPane.getStyleClass().add("container");
+
+		borderPane.setMinWidth(addPaneSize);
+		borderPane.setMinHeight(addPaneSize);
+		borderPane.getStyleClass().add("container");
+		Scene addScene = new Scene(scrollPane, addPaneSize + 15, addPaneSize);
+		Stage stage = new Stage();
+
+		addScene.getStylesheets().add("editSceneStyles.css");
+		stage.setScene(addScene);
+		stage.setTitle("Edit Sample");
+		stage.show();
 	}
 
 	public void submitSample(Sample sample) {
@@ -1059,8 +1197,7 @@ public class FrontEnd extends Application{
 		closeBt.setOnAction(event -> stage.close());
 	}
 
-	public Sample selectASample() {
-		Sample sample = new Sample();
+	public void selectASample() {
 		BorderPane pane = new BorderPane();
 		TableView<Sample> tableView = new TableView<>();
 		StackPane tablePane = new StackPane(tableView);
@@ -1105,11 +1242,16 @@ public class FrontEnd extends Application{
 
 		// TODO fix this
 		selectBt.setOnAction(event -> {
-//			 sample = tableView.getSelectionModel().getSelectedItem();
-//			 return sample;
+			 selectedSample = tableView.getSelectionModel().getSelectedItem();
+			try {
+				editSample();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		});
 
-		return sample;
 	}
 
 }

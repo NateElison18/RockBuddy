@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -45,7 +46,17 @@ public class BackEnd {
     public static HashMap<String, Sample> getCollection() {
         HashMap<String, Sample> collection = new HashMap<>();
         Scanner fileReader = new Scanner("samples.dat");
+        ArrayList<SamplePhoto> examplePhotos = new ArrayList<>();
+        examplePhotos.add(new SamplePhoto("diorite.jpg", "A real nice piece of diorite"));
+        Sample example = new Sample(1, "Diorite", "Ig0001",
+                "SUU Campus", "Milky white, black-darkgray crystals",
+                "Plagioclase, quartz, amphiboles", "phaneritic",
+                "None", "None", "shiny crystals, dull plag",
+                "none", "none noted", "1-5 mm amphibols",
+                "Real nice diorite", "No fossils", false,
+                "5 cm across", examplePhotos);
 
+        collection.put("Ig0001", example);
         return collection;
     }
 }
