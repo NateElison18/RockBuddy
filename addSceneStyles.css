@@ -1,9 +1,16 @@
 .text-field {
-    -fx-max-width: 500;
+    -fx-max-width: 400;
     -fx-min-width: 400;
     -fx-background-color: gray;
     -fx-text-fill: white;
     -fx-font-size: 18;
+}
+#photo-text-field {
+        -fx-max-width: 360;
+        -fx-min-width: 360;
+        -fx-background-color: black;
+        -fx-text-fill: white;
+        -fx-font-size: 18;
 }
 .text-area {
     -fx-max-width: 750;

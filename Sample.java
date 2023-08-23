@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class Sample {
+public class Sample implements Serializable {
 	int generalType; // 0 == sed, 1 == ign, 2 == meta, 3 == unknown
 	String rockTypeString;
 	String location;
@@ -105,37 +106,37 @@ public class Sample {
 	int getGeneralType() {
 		return generalType;
 	}
-	String getId() {
+	public String getId() {
 		return id;
 	}
-	String getComposition() {
+	public String getComposition() {
 		return composition;
 	}
-	String getTexture() {
+	public String getTexture() {
 		return texture;
-	}	
-	String getStructures() {
+	}
+	public String getStructures() {
 		return structures;
-	}	
-	String getRounding() {
+	}
+	public String getRounding() {
 		return rounding;
-	}	
-	String getLuster() {
+	}
+	public String getLuster() {
 		return luster;
-	}	
-	String getGrainSize() {
+	}
+	public String getGrainSize() {
 		return grainSize;
-	}	
-	String getCleavage() {
+	}
+	public String getCleavage() {
 		return cleavage;
-	}	
-	String getMineralSize() {
+	}
+	public String getMineralSize() {
 		return mineralSize;
 	}	
 	boolean getFossilContent() {
 		return fossilContent;
-	}	
-	String getSize() {
+	}
+	public String getSize() {
 		return size;
 	}
 	public String getLocation() {
@@ -155,5 +156,9 @@ public class Sample {
 	}
 	public ArrayList<SamplePhoto> getSamplePhotos() {
 		return samplePhotos;
+	}
+
+	public String getRockTypeString() {
+		return rockTypeString;
 	}
 }

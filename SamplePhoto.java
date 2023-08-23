@@ -1,4 +1,6 @@
-public class SamplePhoto {
+import java.io.Serializable;
+
+public class SamplePhoto implements Serializable {
     String photoPathName;
     String photoDescription;
 
