@@ -30,7 +30,11 @@ public class FrontEnd extends Application{
 	int photoToDisplayIndex = 0;
 	HashMap<String, Sample> collection = new HashMap<>();
 	Sample selectedSample = new Sample();
-	ObjectInputStream fromServer;
+	DataInputStream fromServer;
+	Socket socket = new Socket("localhost", 8000);
+
+	public FrontEnd() throws IOException {
+	}
 
 	public static void main(String[] args) {
 		launch(args);
@@ -52,18 +56,26 @@ public class FrontEnd extends Application{
 		new Thread(() -> {
 			try {
 				System.out.println("IN the try, about to create sockets and update fromServer");
-				Socket socket = new Socket("localhost", 8000);
-				fromServer = new ObjectInputStream(socket.getInputStream());
-
+				fromServer = new DataInputStream(socket.getInputStream());
 				while (true) {
 					System.out.println("Inside the while loop");
-					Sample newSample = (Sample) fromServer.readObject();
-					String id = newSample.getId();
-					collection.put(id, newSample);
-					System.out.println("Adding" + newSample.getRockName() + " w id " + id);
+					ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
+					int samplePhotoSize = fromServer.readInt();
+					for (int i = 0; i < samplePhotoSize - 1; i++) {
+						samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
+					}
+
+					Sample newSample = new Sample(fromServer.readInt(), fromServer.readUTF(),
+							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+							fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF(), samplePhotos);
+					collection.put(newSample.getId(), newSample);
+					System.out.println("Adding" + newSample.getRockName() + " w id " + newSample.getId());
 				}
 
-			} catch (IOException | ClassNotFoundException e) {
+			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 
@@ -490,6 +502,7 @@ public class FrontEnd extends Application{
 
 	public BorderPane buildCollectionPane() {
 		updateCollection();
+		System.out.println(collection.size());
 		BorderPane pane = new BorderPane();
 		Label title = new Label("Collection:");
 		TableView<Sample> tableView = new TableView<>();
@@ -498,7 +511,6 @@ public class FrontEnd extends Application{
 		StackPane centerPane = new StackPane(scrollPane);
 		ObservableList<Sample> collection = FXCollections.observableArrayList();
 		ArrayList<Sample> samplesArraylist = new ArrayList<>(this.collection.values());
-		System.out.println(samplesArraylist.get(0).getComposition());
 		TableColumn rockNameCl = new TableColumn("Name");
 		TableColumn rockIdCl = new TableColumn("Id");
 
@@ -1536,6 +1548,7 @@ public class FrontEnd extends Application{
 		stage.show();
 	}
 	public void viewCollection() throws IOException, ClassNotFoundException {
+		BackEnd.sendCollection();
 		BorderPane borderPane = buildCollectionPane();
 		ScrollPane scrollPane = new ScrollPane(borderPane);
 		borderPane.getStyleClass().add("container");
@@ -1549,7 +1562,6 @@ public class FrontEnd extends Application{
 		stage.setScene(viewCollectionScene);
 		stage.setTitle("View Collection");
 		stage.show();
-		BackEnd.sendCollection();
 	}
 	public void editSample() throws FileNotFoundException, InterruptedException {
 
@@ -1589,7 +1601,6 @@ public class FrontEnd extends Application{
 		String host = "localhost";
 
 		try {
-			Socket socket = new Socket(host, 8000);
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 			toServer.writeObject(sample);
 

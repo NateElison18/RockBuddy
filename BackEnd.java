@@ -8,19 +8,24 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class BackEnd {
-    ObjectOutputStream outputToFile = new ObjectOutputStream(new FileOutputStream("samples.dat", false));
-    static ObjectOutputStream outputToClient;
-    ObjectInputStream inputFromClient;
-    static ObjectInputStream inputFromFile;
-    static ServerSocket serverSocket;
+    static ObjectOutputStream outputToFile;
 
     static {
         try {
-            serverSocket = new ServerSocket(8000);
+            outputToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", true));
+            outputToFile.flush();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
+
+    static DataOutputStream outputToClient;
+    static ObjectInputStream inputFromClient;
+    static BufferedInputStream inputFromFile;
+
+    static ServerSocket serverSocket;
+    static Socket socket;
+
 
 
     public static void main(String[] args) throws IOException {
@@ -30,9 +35,12 @@ public class BackEnd {
     public BackEnd() throws IOException {
         new Thread( () -> {
             try {
+                serverSocket = new ServerSocket(8000);
+                socket = serverSocket.accept();
+                inputFromFile = new BufferedInputStream(new FileInputStream("samples.txt"));
+                outputToClient = new DataOutputStream(socket.getOutputStream());
 
                 while (true) {
-                    Socket socket = serverSocket.accept();
                     inputFromClient = new ObjectInputStream(socket.getInputStream());
                     Sample sample = (Sample) inputFromClient.readObject();
                     outputToFile.writeObject(sample);
@@ -72,19 +80,46 @@ public class BackEnd {
         collection.put("Ig0001", example);
         return collection;
     }
-    public static void sendCollection() throws IOException, ClassNotFoundException {
-        Socket socket = serverSocket.accept();
-        inputFromFile = new ObjectInputStream(new FileInputStream("samples.dat"));
-        outputToClient = new ObjectOutputStream(socket.getOutputStream());
+    public static void sendCollection() throws ClassNotFoundException, IOException {
+        outputToFile.flush();
+        inputFromFile.read();
+
         try {
             while (true) {
+                System.out.println("Are we getting here?");
                 Sample sample = (Sample) inputFromFile.readObject();
-                outputToClient.writeObject(sample);
+                System.out.println("Sending sample " + sample.getRockName());
+                outputToClient.writeInt(sample.getSamplePhotos().size());
+                for (int i = 0; i < sample.getSamplePhotos().size() - 1; i++) {
+                    outputToClient.writeUTF(sample.getSamplePhotos().get(i).getPhotoPathName());
+                    outputToClient.writeUTF(sample.getSamplePhotos().get(i).getPhotoDescription());
+                }
+                outputToClient.writeInt(sample.getGeneralType());
+                outputToClient.writeUTF(sample.getRockName());
+                outputToClient.writeUTF(sample.getId());
+                outputToClient.writeUTF(sample.getLocation());
+                outputToClient.writeUTF(sample.getColor());
+                outputToClient.writeUTF(sample.getComposition());
+                outputToClient.writeUTF(sample.getTexture());
+                outputToClient.writeUTF(sample.getStructures());
+                outputToClient.writeUTF(sample.getRounding());
+                outputToClient.writeUTF(sample.getLuster());
+                outputToClient.writeUTF(sample.getGrainSize());
+                outputToClient.writeUTF(sample.getCleavage());
+                outputToClient.writeUTF(sample.getMineralSize());
+                outputToClient.writeUTF(sample.getOtherFeatures());
+                outputToClient.writeUTF(sample.getFossilDescription());
+                outputToClient.writeBoolean(sample.getFossilContent());
+                outputToClient.writeUTF(sample.getSize());
                 outputToClient.flush();
             }
         }
         catch (RuntimeException e) {
             System.out.println("All samples sent");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 //        System.out.println(testSample.toString());
 
