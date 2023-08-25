@@ -21,7 +21,8 @@ public class BackEnd {
 
     static DataOutputStream outputToClient;
     static ObjectInputStream inputFromClient;
-    static BufferedInputStream inputFromFile;
+    static DataInputStream inputFromFile;
+
 
     static ServerSocket serverSocket;
     static Socket socket;
@@ -32,19 +33,22 @@ public class BackEnd {
         new BackEnd();
     }
 
-    public BackEnd() throws IOException {
+    public BackEnd() throws IOException, NullPointerException{
         new Thread( () -> {
             try {
                 serverSocket = new ServerSocket(8000);
                 socket = serverSocket.accept();
-                inputFromFile = new BufferedInputStream(new FileInputStream("samples.txt"));
+                inputFromFile = new DataInputStream(new FileInputStream("samples.txt"));
                 outputToClient = new DataOutputStream(socket.getOutputStream());
 
                 while (true) {
                     inputFromClient = new ObjectInputStream(socket.getInputStream());
                     Sample sample = (Sample) inputFromClient.readObject();
+                    String testing = sample.getRockName();
+//                    System.out.println("Trying to write " + testing);
                     outputToFile.writeObject(sample);
                     outputToFile.flush();
+                    outputToFile.close();
                 }
 
             } catch (IOException | ClassNotFoundException e) {
@@ -80,21 +84,34 @@ public class BackEnd {
         collection.put("Ig0001", example);
         return collection;
     }
-    public static void sendCollection() throws ClassNotFoundException, IOException {
-        outputToFile.flush();
-        inputFromFile.read();
+    public static void sendCollection() throws ClassNotFoundException, IOException, NullPointerException {
+        BufferedReader input = new BufferedReader(new FileReader("samples.txt"));
+        BufferedWriter output = new BufferedWriter(new FileWriter("samples.txt", true));
+        //ObjectOutputStream objectToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", true));
+        ObjectInputStream objectFromFile = new ObjectInputStream(new FileInputStream("samples.txt"));
+        //outputToFile.flush();
+        //System.out.println(input.readLine());
+//        Sample test = (Sample) objectFromFile.readObject();
+//        System.out.println(test.getGrainSize());
+//        System.out.println(test.getSamplePhotos().size());
+        //String rockType = objectFromFile.readUTF();
+//        System.out.println(test.getRockName() + " ");
 
         try {
             while (true) {
-                System.out.println("Are we getting here?");
-                Sample sample = (Sample) inputFromFile.readObject();
-                System.out.println("Sending sample " + sample.getRockName());
-                outputToClient.writeInt(sample.getSamplePhotos().size());
-                for (int i = 0; i < sample.getSamplePhotos().size() - 1; i++) {
-                    outputToClient.writeUTF(sample.getSamplePhotos().get(i).getPhotoPathName());
-                    outputToClient.writeUTF(sample.getSamplePhotos().get(i).getPhotoDescription());
-                }
-                outputToClient.writeInt(sample.getGeneralType());
+                Sample sample = (Sample) objectFromFile.readObject();
+                System.out.println("Created Sample from file");
+//                System.out.println("Sending sample " + sample.getRockName());
+//                outputToClient.writeInt(sample.getSamplePhotos().size());
+//                System.out.println("Sent photo album size of " + sample.getSamplePhotos().size());
+//                for (int i = 0; i < sample.getSamplePhotos().size() - 1; i++) {
+//                    outputToClient.writeUTF(sample.getSamplePhotos().get(i).getPhotoPathName());
+//                    outputToClient.writeUTF(sample.getSamplePhotos().get(i).getPhotoDescription());
+//                }
+                int generalType = sample.getGeneralType();
+                System.out.println("set generalType to " + generalType + " from the sample pulled from file");
+                outputToClient.writeInt(generalType);
+                System.out.println("Sent general type as an int");
                 outputToClient.writeUTF(sample.getRockName());
                 outputToClient.writeUTF(sample.getId());
                 outputToClient.writeUTF(sample.getLocation());
@@ -116,9 +133,12 @@ public class BackEnd {
         }
         catch (RuntimeException e) {
             System.out.println("All samples sent");
-        } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
+        }
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
+        catch (IOException e) {
             e.printStackTrace();
         }
 //        System.out.println(testSample.toString());

@@ -63,6 +63,11 @@ public class Sample implements Serializable {
 				rockTypeString = "Metamorphic";
 				break;
 		}
+		// Initialize samplePhotos array w a placeholder if null
+		if (samplePhotos == null)
+			this.samplePhotos.add(new SamplePhoto("Images/placeholder.jpg", "placeholder image"));
+
+
 	}
 	
 //	// Igneous constructor

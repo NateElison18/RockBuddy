@@ -55,15 +55,16 @@ public class FrontEnd extends Application{
 		// Listen for and get updates to the collection
 		new Thread(() -> {
 			try {
-				System.out.println("IN the try, about to create sockets and update fromServer");
 				fromServer = new DataInputStream(socket.getInputStream());
 				while (true) {
-					System.out.println("Inside the while loop");
 					ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
-					int samplePhotoSize = fromServer.readInt();
-					for (int i = 0; i < samplePhotoSize - 1; i++) {
-						samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
-					}
+//					System.out.println("Waiting for server to send sample photo album size");
+//					int samplePhotoSize = fromServer.readInt();
+//					System.out.println("Got the size of " + samplePhotoSize);
+//
+//					for (int i = 0; i < samplePhotoSize - 1; i++) {
+//						samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
+//					}
 
 					Sample newSample = new Sample(fromServer.readInt(), fromServer.readUTF(),
 							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
@@ -415,7 +416,7 @@ public class FrontEnd extends Application{
 			else if (unknownRb.isSelected())
 				generalType = 3;
 
-			String rockName = "";
+			String rockName = " ";
 			if (nameTf.getText() != null)
 				rockName = nameTf.getText();
 
@@ -423,51 +424,51 @@ public class FrontEnd extends Application{
 			if (idTf.getText() != null)
 				id = idTf.getText();
 
-			String location = "";
+			String location = " ";
 			if (locationFoundTF.getText() != null)
 				location = locationFoundTF.getText();
 
-			String color = "";
+			String color = " ";
 			if (colorTf.getText() != null)
 				color = colorTf.getText();
 
-			String composition = "";
+			String composition = " ";
 			if (compositionTf.getText() != null)
 				composition = compositionTf.getText();
 
-			String texture = "";
+			String texture = " ";
 			if (textureTf.getText() != null)
 				texture = textureTf.getText();
 
-			String structures = "";
+			String structures = " ";
 			if (structuresTf.getText() != null)
 				structures = structuresTf.getText();
 
-			String rounding = "";
+			String rounding = " ";
 			if (roundingTf.getText() != null)
 				rounding = roundingTf.getText();
 
-			String luster = "";
+			String luster = " ";
 			if (lusterTf.getText() != null)
 				luster = lusterTf.getText();
 
-			String grainSize = "";
+			String grainSize = " ";
 			if (grainSizeTf.getText() != null)
 				grainSize = grainSizeTf.getText();
 
-			String cleavage = "";
+			String cleavage = " ";
 			if (cleavageTf.getText() != null)
 				cleavage = cleavageTf.getText();
 
-			String mineralSize = "";
+			String mineralSize = " ";
 			if (mineralSizeTf.getText() != null)
 				mineralSize = mineralSizeTf.getText();
 
-			String otherFeaturesString = "";
+			String otherFeaturesString = " ";
 			if (otherFeatures.getText() != null)
 				otherFeaturesString = otherFeatures.getText();
 
-			String fossilDescription = "";
+			String fossilDescription = " ";
 			if (fossilDescriptionTf.getText() != null)
 				fossilDescription = fossilDescriptionTf.getText();
 
@@ -475,7 +476,7 @@ public class FrontEnd extends Application{
 			if (fossilContent.isSelected())
 				fossilContentBool = true;
 
-			String size  = "";
+			String size  = " ";
 			if (sizeTf.getText() != null)
 				size = sizeTf.getText();
 
@@ -1598,7 +1599,7 @@ public class FrontEnd extends Application{
 		stage.show();
 	}
 	public void submitSample(Sample sample) {
-		String host = "localhost";
+
 
 		try {
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
@@ -1786,7 +1787,7 @@ public class FrontEnd extends Application{
 	}
 
 	public void updateCollection(){
-		collection.clear();
+//		collection.clear();
 
 	}
 
