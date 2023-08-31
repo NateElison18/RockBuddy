@@ -24,7 +24,7 @@ import java.util.HashMap;
 public class FrontEnd extends Application{
 	BorderPane mainPane = new BorderPane();
 	int mainPaneSize = 320;
-	int addPaneSize = 1000;
+	int addPaneSize = 700;
 	int viewCollectionPaneSize = 600;
 	int viewCollectionPaneWidth = 1200;
 	int photoToDisplayIndex = 0;
@@ -52,36 +52,34 @@ public class FrontEnd extends Application{
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
-		// Listen for and get updates to the collection
-		new Thread(() -> {
-			try {
-				fromServer = new DataInputStream(socket.getInputStream());
-				while (true) {
-					ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
-//					System.out.println("Waiting for server to send sample photo album size");
-//					int samplePhotoSize = fromServer.readInt();
-//					System.out.println("Got the size of " + samplePhotoSize);
+//		// Listen for and get updates to the collection
+//		new Thread(() -> {
+//			try {
+//				fromServer = new DataInputStream(socket.getInputStream());
+//				while (true) {
+//					ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
+////					System.out.println("Waiting for server to send sample photo album size");
+////					int samplePhotoSize = fromServer.readInt();
+////					System.out.println("Got the size of " + samplePhotoSize);
+////
+////					for (int i = 0; i < samplePhotoSize - 1; i++) {
+////						samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
+////					}
+////
+////					Sample newSample = new Sample(fromServer.readInt(), fromServer.readUTF(),
+////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+////							fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF(), samplePhotos);
+////					collection.put(newSample.getId(), newSample);
+////					System.out.println("Adding" + newSample.getRockName() + " w id " + newSample.getId());
+//				}
 //
-//					for (int i = 0; i < samplePhotoSize - 1; i++) {
-//						samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
-//					}
-
-					Sample newSample = new Sample(fromServer.readInt(), fromServer.readUTF(),
-							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-							fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF(), samplePhotos);
-					collection.put(newSample.getId(), newSample);
-					System.out.println("Adding" + newSample.getRockName() + " w id " + newSample.getId());
-				}
-
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-
-		}).start();
-
+//			} catch (IOException e) {
+//				throw new RuntimeException(e);
+//			}
+//		}).start();
 	}
 
 	public void buildTopPane() {
@@ -502,7 +500,7 @@ public class FrontEnd extends Application{
 	}
 
 	public BorderPane buildCollectionPane() {
-		updateCollection();
+//		updateCollection();
 		System.out.println(collection.size());
 		BorderPane pane = new BorderPane();
 		Label title = new Label("Collection:");
@@ -1549,7 +1547,11 @@ public class FrontEnd extends Application{
 		stage.show();
 	}
 	public void viewCollection() throws IOException, ClassNotFoundException {
-		BackEnd.sendCollection();
+//		BackEnd.sendCollection();
+        ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
+		toServer.writeObject(null);
+        toServer.flush();
+        updateCollection();
 		BorderPane borderPane = buildCollectionPane();
 		ScrollPane scrollPane = new ScrollPane(borderPane);
 		borderPane.getStyleClass().add("container");
@@ -1599,8 +1601,6 @@ public class FrontEnd extends Application{
 		stage.show();
 	}
 	public void submitSample(Sample sample) {
-
-
 		try {
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 			toServer.writeObject(sample);
@@ -1786,8 +1786,29 @@ public class FrontEnd extends Application{
 
 	}
 
-	public void updateCollection(){
-//		collection.clear();
+	public void updateCollection() throws IOException {
+		collection.clear();
+        ArrayList<SamplePhoto> samplePhotos = null;
+		DataInputStream fromServer = new DataInputStream(socket.getInputStream());
+		try {
+			while (true) {
+				System.out.println("We're in the updatecollection while Loop");
+				Sample newSample = new Sample(fromServer.readInt(), fromServer.readUTF(),
+						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
+						fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF(), samplePhotos);
+				if (newSample.getId() == null)
+					return;
+
+				collection.put(newSample.getId(), newSample);
+				System.out.println(collection.size());
+				System.out.println(collection.get(newSample.getId()).getRockName());
+			}
+		} catch (EOFException e) {
+
+		}
 
 	}
 

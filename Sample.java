@@ -21,7 +21,7 @@ public class Sample implements Serializable {
 	String otherFeatures;
 	String size;
 	//TODO implement imageFilePaths
-	ArrayList<SamplePhoto> samplePhotos;
+	ArrayList<SamplePhoto> samplePhotos = new ArrayList<SamplePhoto>();
 
 	boolean fossilContent;
 	Date dateLogged;
@@ -64,8 +64,8 @@ public class Sample implements Serializable {
 				break;
 		}
 		// Initialize samplePhotos array w a placeholder if null
-		if (samplePhotos == null)
-			this.samplePhotos.add(new SamplePhoto("Images/placeholder.jpg", "placeholder image"));
+//		if (samplePhotos == null)
+//			this.samplePhotos.add(new SamplePhoto("Images/placeholder.jpg", "placeholder image"));
 
 
 	}

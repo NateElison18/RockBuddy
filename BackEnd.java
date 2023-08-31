@@ -1,8 +1,11 @@
 import com.sun.security.ntlm.Server;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -21,8 +24,7 @@ public class BackEnd {
 
     static DataOutputStream outputToClient;
     static ObjectInputStream inputFromClient;
-    static DataInputStream inputFromFile;
-
+//    static DataInputStream inputFromFile;
 
     static ServerSocket serverSocket;
     static Socket socket;
@@ -33,22 +35,66 @@ public class BackEnd {
         new BackEnd();
     }
 
-    public BackEnd() throws IOException, NullPointerException{
+    public BackEnd() throws IOException, NullPointerException {
         new Thread( () -> {
+
             try {
                 serverSocket = new ServerSocket(8000);
                 socket = serverSocket.accept();
-                inputFromFile = new DataInputStream(new FileInputStream("samples.txt"));
+//                inputFromFile = new DataInputStream(Files.newInputStream(Paths.get("samples.txt")));
                 outputToClient = new DataOutputStream(socket.getOutputStream());
 
                 while (true) {
                     inputFromClient = new ObjectInputStream(socket.getInputStream());
-                    Sample sample = (Sample) inputFromClient.readObject();
-                    String testing = sample.getRockName();
-//                    System.out.println("Trying to write " + testing);
-                    outputToFile.writeObject(sample);
-                    outputToFile.flush();
-                    outputToFile.close();
+                    Sample sampleReceived = (Sample) inputFromClient.readObject();
+                    if (sampleReceived == null) {
+
+                        ObjectInputStream objectFromFile = null;
+                        try {
+                            objectFromFile = new ObjectInputStream(Files.newInputStream(Paths.get("samples.txt")));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        outputToFile.close();
+                        Sample sample = null;
+                        try {
+                            sample = (Sample) objectFromFile.readObject();
+                        } catch (IOException e) {
+                            System.out.println("All samples sent, sending null sample to ");
+                        }
+//                        Sample sample = new Sample(1, "Diorite", "Ig0001",
+//                                "SUU Campus", "Milky white, black-darkgray crystals",
+//                                "Plagioclase, quartz, amphiboles", "phaneritic",
+//                                "None", "None", "shiny crystals, dull plag",
+//                                "none", "none noted", "1-5 mm amphibols",
+//                                "Real nice diorite", "No fossils", false,
+//                                "5 cm across", new ArrayList<SamplePhoto>());
+                        outputToClient.writeInt(sample.getGeneralType());
+                        System.out.println("Sent general type as an int");
+                        outputToClient.writeUTF(sample.getRockName());
+                        outputToClient.writeUTF(sample.getId());
+                        outputToClient.writeUTF(sample.getLocation());
+                        outputToClient.writeUTF(sample.getColor());
+                        outputToClient.writeUTF(sample.getComposition());
+                        outputToClient.writeUTF(sample.getTexture());
+                        outputToClient.writeUTF(sample.getStructures());
+                        outputToClient.writeUTF(sample.getRounding());
+                        outputToClient.writeUTF(sample.getLuster());
+                        outputToClient.writeUTF(sample.getGrainSize());
+                        outputToClient.writeUTF(sample.getCleavage());
+                        outputToClient.writeUTF(sample.getMineralSize());
+                        outputToClient.writeUTF(sample.getOtherFeatures());
+                        outputToClient.writeUTF(sample.getFossilDescription());
+                        outputToClient.writeBoolean(sample.getFossilContent());
+                        outputToClient.writeUTF(sample.getSize());
+                        outputToClient.flush();
+                    }
+                    else {
+                        outputToFile.writeObject(sampleReceived);
+                        outputToFile.flush();
+                        outputToFile.close();
+                    }
+
                 }
 
             } catch (IOException | ClassNotFoundException e) {
