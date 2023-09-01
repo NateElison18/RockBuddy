@@ -120,8 +120,6 @@ public class FrontEnd extends Application{
 				viewCollection();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
-			} catch (ClassNotFoundException e) {
-				throw new RuntimeException(e);
 			}
 		});
 		exit.setOnAction(event -> System.exit(0));
@@ -158,8 +156,6 @@ public class FrontEnd extends Application{
 			try {
 				viewCollection();
 			} catch (IOException e) {
-				throw new RuntimeException(e);
-			} catch (ClassNotFoundException e) {
 				throw new RuntimeException(e);
 			}
 		});
@@ -1460,7 +1456,6 @@ public class FrontEnd extends Application{
 		leftCenterPane.setSpacing(vGap);
 		rockTypesPane.setSpacing(hGap);
 		centerPane.getStyleClass().add("container");
-		System.out.println(samplePhotos.size());
 		// Remove the buttons if there are less than 2 rock pics
 		if (samplePhotos.size() < 2)
 			photoButtons.getChildren().clear();
@@ -1546,8 +1541,7 @@ public class FrontEnd extends Application{
 		stage.setTitle("New Sample");
 		stage.show();
 	}
-	public void viewCollection() throws IOException, ClassNotFoundException {
-//		BackEnd.sendCollection();
+	public void viewCollection() throws IOException {
         ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 		toServer.writeObject(null);
         toServer.flush();
@@ -1790,25 +1784,22 @@ public class FrontEnd extends Application{
 		collection.clear();
         ArrayList<SamplePhoto> samplePhotos = null;
 		DataInputStream fromServer = new DataInputStream(socket.getInputStream());
-		try {
 			while (true) {
 				System.out.println("We're in the updatecollection while Loop");
-				Sample newSample = new Sample(fromServer.readInt(), fromServer.readUTF(),
+				int type = fromServer.readInt(); // Outside Sample constructor, to break out of the loop once the key int is sent (100).
+				if (type == 100) return;
+				Sample newSample = new Sample(type, fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF(), samplePhotos);
-				if (newSample.getId() == null)
-					return;
 
 				collection.put(newSample.getId(), newSample);
 				System.out.println(collection.size());
 				System.out.println(collection.get(newSample.getId()).getRockName());
 			}
-		} catch (EOFException e) {
 
-		}
 
 	}
 

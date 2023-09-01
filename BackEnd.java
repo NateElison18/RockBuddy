@@ -11,11 +11,11 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class BackEnd {
-    static ObjectOutputStream outputToFile;
+    static DataOutputStream outputToFile;
 
     static {
         try {
-            outputToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", true));
+            outputToFile = new DataOutputStream( new FileOutputStream("samples.txt", true));
             outputToFile.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,6 +47,7 @@ public class BackEnd {
                 while (true) {
                     inputFromClient = new ObjectInputStream(socket.getInputStream());
                     Sample sampleReceived = (Sample) inputFromClient.readObject();
+                    // Send the collection
                     if (sampleReceived == null) {
 
                         ObjectInputStream objectFromFile = null;
@@ -55,12 +56,36 @@ public class BackEnd {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        outputToFile.close();
-                        Sample sample = null;
+                        objectFromFile.readUTF();
                         try {
-                            sample = (Sample) objectFromFile.readObject();
+                            while (true) {
+                                Sample sample = (Sample) objectFromFile.readObject();
+                                System.out.println("Pulled sample named " + sample.getRockName());
+                                outputToClient.writeInt(sample.getGeneralType());
+                                outputToClient.writeUTF(sample.getRockName());
+                                outputToClient.writeUTF(sample.getId());
+                                outputToClient.writeUTF(sample.getLocation());
+                                outputToClient.writeUTF(sample.getColor());
+                                outputToClient.writeUTF(sample.getComposition());
+                                outputToClient.writeUTF(sample.getTexture());
+                                outputToClient.writeUTF(sample.getStructures());
+                                outputToClient.writeUTF(sample.getRounding());
+                                outputToClient.writeUTF(sample.getLuster());
+                                outputToClient.writeUTF(sample.getGrainSize());
+                                outputToClient.writeUTF(sample.getCleavage());
+                                outputToClient.writeUTF(sample.getMineralSize());
+                                outputToClient.writeUTF(sample.getOtherFeatures());
+                                outputToClient.writeUTF(sample.getFossilDescription());
+                                outputToClient.writeBoolean(sample.getFossilContent());
+                                outputToClient.writeUTF(sample.getSize());
+                                outputToClient.flush();
+                                System.out.println("Sent sample named " + sample.getRockName());
+                            }
                         } catch (IOException e) {
-                            System.out.println("All samples sent, sending null sample to ");
+                            System.out.println("All samples sent, sending flag to end frontend listening method");
+                            // Send flag int to tell client to stop expecting more samples
+                            outputToClient.writeInt(100);
+                            System.out.println(e.getStackTrace());
                         }
 //                        Sample sample = new Sample(1, "Diorite", "Ig0001",
 //                                "SUU Campus", "Milky white, black-darkgray crystals",
@@ -69,30 +94,29 @@ public class BackEnd {
 //                                "none", "none noted", "1-5 mm amphibols",
 //                                "Real nice diorite", "No fossils", false,
 //                                "5 cm across", new ArrayList<SamplePhoto>());
-                        outputToClient.writeInt(sample.getGeneralType());
-                        System.out.println("Sent general type as an int");
-                        outputToClient.writeUTF(sample.getRockName());
-                        outputToClient.writeUTF(sample.getId());
-                        outputToClient.writeUTF(sample.getLocation());
-                        outputToClient.writeUTF(sample.getColor());
-                        outputToClient.writeUTF(sample.getComposition());
-                        outputToClient.writeUTF(sample.getTexture());
-                        outputToClient.writeUTF(sample.getStructures());
-                        outputToClient.writeUTF(sample.getRounding());
-                        outputToClient.writeUTF(sample.getLuster());
-                        outputToClient.writeUTF(sample.getGrainSize());
-                        outputToClient.writeUTF(sample.getCleavage());
-                        outputToClient.writeUTF(sample.getMineralSize());
-                        outputToClient.writeUTF(sample.getOtherFeatures());
-                        outputToClient.writeUTF(sample.getFossilDescription());
-                        outputToClient.writeBoolean(sample.getFossilContent());
-                        outputToClient.writeUTF(sample.getSize());
-                        outputToClient.flush();
+
                     }
+                    // If the sample recieved is not null, it is saved to the file.
                     else {
-                        outputToFile.writeObject(sampleReceived);
-                        outputToFile.flush();
-                        outputToFile.close();
+                        // TODO Check this shit, add whats left.
+                        outputToFile.writeInt(sampleReceived.getGeneralType());
+                        outputToFile.writeUTF(sampleReceived.getRockName());
+                        outputToFile.writeUTF(sampleReceived.getLocation());
+                        outputToFile.writeUTF(sampleReceived.getId());
+                        outputToFile.writeUTF(sampleReceived.getColor());
+                        outputToFile.writeUTF(sampleReceived.getComposition());
+                        outputToFile.writeUTF(sampleReceived.getTexture());
+                        outputToFile.writeUTF(sampleReceived.getStructures());
+                        outputToFile.writeUTF(sampleReceived.getRounding());
+                        outputToFile.writeUTF(sampleReceived.getLuster());
+                        outputToFile.writeUTF(sampleReceived.getGrainSize());
+                        outputToFile.writeUTF(sampleReceived.getCleavage());
+                        outputToFile.writeUTF(sampleReceived.getMineralSize());
+                        outputToFile.writeUTF(sampleReceived.getFossilDescription());
+                        outputToFile.writeUTF(sampleReceived.getOtherFeatures());
+                        outputToFile.writeUTF(sampleReceived.getSize());
+                        outputToFile.writeUTF(sampleReceived.getRockName());
+
                     }
 
                 }
