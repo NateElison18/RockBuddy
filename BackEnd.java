@@ -2,6 +2,7 @@ import com.sun.security.ntlm.Server;
 
 import javax.xml.crypto.Data;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -10,21 +11,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+// TODO Fix issue where samples are not appending between program runs
 public class BackEnd {
-    static DataOutputStream outputToFile;
+    static ObjectInputStream objectFromFile;
+    static ArrayList<Sample> collection = new ArrayList<Sample>();
 
-    static {
-        try {
-            outputToFile = new DataOutputStream( new FileOutputStream("samples.txt", true));
-            outputToFile.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     static DataOutputStream outputToClient;
     static ObjectInputStream inputFromClient;
 //    static DataInputStream inputFromFile;
+    static ObjectOutputStream outputToFile;
 
     static ServerSocket serverSocket;
     static Socket socket;
@@ -37,6 +33,12 @@ public class BackEnd {
 
     public BackEnd() throws IOException, NullPointerException {
         new Thread( () -> {
+            // Update collection at the start of the program
+            try {
+                collection = (ArrayList<Sample>) objectFromFile.readObject();
+            } catch (IOException | ClassNotFoundException | NullPointerException e) {
+                System.out.println("No samples found in sample.txt");
+            }
 
             try {
                 serverSocket = new ServerSocket(8000);
@@ -50,17 +52,16 @@ public class BackEnd {
                     // Send the collection
                     if (sampleReceived == null) {
 
-                        ObjectInputStream objectFromFile = null;
                         try {
                             objectFromFile = new ObjectInputStream(Files.newInputStream(Paths.get("samples.txt")));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        objectFromFile.readUTF();
                         try {
-                            while (true) {
-                                Sample sample = (Sample) objectFromFile.readObject();
+                            for (int i = 0; i < collection.size(); i++){
+                                Sample sample = collection.get(i);
                                 System.out.println("Pulled sample named " + sample.getRockName());
+
                                 outputToClient.writeInt(sample.getGeneralType());
                                 outputToClient.writeUTF(sample.getRockName());
                                 outputToClient.writeUTF(sample.getId());
@@ -78,13 +79,22 @@ public class BackEnd {
                                 outputToClient.writeUTF(sample.getFossilDescription());
                                 outputToClient.writeBoolean(sample.getFossilContent());
                                 outputToClient.writeUTF(sample.getSize());
+                                // Sending info for the photoSamples
+                                ArrayList<SamplePhoto> samplePhotos = sample.getSamplePhotos();
+                                samplePhotos.clear();
+                                outputToClient.writeInt(samplePhotos.size());
+                                for (int j = 0; j < samplePhotos.size(); j++) {
+                                    outputToClient.writeUTF(samplePhotos.get(j).getPhotoPathName());
+                                    outputToClient.writeUTF(samplePhotos.get(j).getPhotoDescription());
+                                }
                                 outputToClient.flush();
                                 System.out.println("Sent sample named " + sample.getRockName());
                             }
-                        } catch (IOException e) {
                             System.out.println("All samples sent, sending flag to end frontend listening method");
                             // Send flag int to tell client to stop expecting more samples
                             outputToClient.writeInt(100);
+                        } catch (IOException e) {
+
                             System.out.println(e.getStackTrace());
                         }
 //                        Sample sample = new Sample(1, "Diorite", "Ig0001",
@@ -98,24 +108,11 @@ public class BackEnd {
                     }
                     // If the sample recieved is not null, it is saved to the file.
                     else {
-                        // TODO Check this shit, add whats left.
-                        outputToFile.writeInt(sampleReceived.getGeneralType());
-                        outputToFile.writeUTF(sampleReceived.getRockName());
-                        outputToFile.writeUTF(sampleReceived.getLocation());
-                        outputToFile.writeUTF(sampleReceived.getId());
-                        outputToFile.writeUTF(sampleReceived.getColor());
-                        outputToFile.writeUTF(sampleReceived.getComposition());
-                        outputToFile.writeUTF(sampleReceived.getTexture());
-                        outputToFile.writeUTF(sampleReceived.getStructures());
-                        outputToFile.writeUTF(sampleReceived.getRounding());
-                        outputToFile.writeUTF(sampleReceived.getLuster());
-                        outputToFile.writeUTF(sampleReceived.getGrainSize());
-                        outputToFile.writeUTF(sampleReceived.getCleavage());
-                        outputToFile.writeUTF(sampleReceived.getMineralSize());
-                        outputToFile.writeUTF(sampleReceived.getFossilDescription());
-                        outputToFile.writeUTF(sampleReceived.getOtherFeatures());
-                        outputToFile.writeUTF(sampleReceived.getSize());
-                        outputToFile.writeUTF(sampleReceived.getRockName());
+                        collection.add(sampleReceived);
+                        outputToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", true));
+
+                        outputToFile.writeObject(collection);
+
 
                     }
 

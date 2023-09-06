@@ -62,6 +62,53 @@ public class Sample implements Serializable {
 			case 2:
 				rockTypeString = "Metamorphic";
 				break;
+			case 3:
+				rockTypeString = "Unknown";
+				break;
+		}
+		// Initialize samplePhotos array w a placeholder if null
+//		if (samplePhotos == null)
+//			this.samplePhotos.add(new SamplePhoto("Images/placeholder.jpg", "placeholder image"));
+
+
+	}
+	// Constructor w everything but the samplePhotos
+	Sample(int generalType, String rockName, String id, String location, String color, String composition, String texture, String structures, String rounding,
+		   String luster, String grainSize, String cleavage, String mineralSize, String otherFeatures, String fossilDescription, boolean fossilContent,
+		   String size) {
+		this.generalType = generalType;
+		this.location = location;
+		this.rockName = rockName;
+		this.id = id;
+		this.color = color;
+		this.composition = composition;
+		this.texture = texture;
+		this.structures = structures;
+		this.rounding = rounding;
+		this.luster = luster;
+		this.grainSize = grainSize;
+		this.cleavage = cleavage;
+		this.mineralSize = mineralSize;
+		this.otherFeatures = otherFeatures;
+		this.fossilContent = fossilContent;
+		this.fossilDescription = fossilDescription;
+		this.size = size;
+		this.samplePhotos = samplePhotos;
+		dateLogged = new Date();
+
+		switch (generalType){
+			case 0:
+				rockTypeString = "Sedimentary";
+				break;
+			case 1:
+				rockTypeString = "Igneous";
+				break;
+			case 2:
+				rockTypeString = "Metamorphic";
+				break;
+			case 3:
+				rockTypeString = "Unknown";
+				break;
 		}
 		// Initialize samplePhotos array w a placeholder if null
 //		if (samplePhotos == null)
@@ -165,5 +212,8 @@ public class Sample implements Serializable {
 
 	public String getRockTypeString() {
 		return rockTypeString;
+	}
+	public void setSamplePhotos(ArrayList<SamplePhoto> samplePhotos) {
+		this.samplePhotos = samplePhotos;
 	}
 }

@@ -24,7 +24,7 @@ import java.util.HashMap;
 public class FrontEnd extends Application{
 	BorderPane mainPane = new BorderPane();
 	int mainPaneSize = 320;
-	int addPaneSize = 700;
+	int addPaneSize = 900;
 	int viewCollectionPaneSize = 600;
 	int viewCollectionPaneWidth = 1200;
 	int photoToDisplayIndex = 0;
@@ -1214,6 +1214,7 @@ public class FrontEnd extends Application{
 			collection.remove(originalId);
 			collection.put(idTf.getText(), newSample);
 			// TODO send updated hashmap to server.
+			sendEditedSample(newSample);
 			// TODO display updated window
 			Stage stage = (Stage) applyBt.getScene().getWindow();
 
@@ -1400,7 +1401,7 @@ public class FrontEnd extends Application{
 			imageName.setText(samplePhotos.get(photoToDisplayIndex).getPhotoPathName());
 			imageCaption.setText(samplePhotos.get(photoToDisplayIndex).getPhotoDescription());
 		}
-		catch (FileNotFoundException | NullPointerException e) {
+		catch (FileNotFoundException | NullPointerException | IndexOutOfBoundsException e) {
 			String fileName = "Images/placeholder.jpg";
 			imageInputStream = new FileInputStream(fileName);
 			imageName.setText("Placeholder Image");
@@ -1782,9 +1783,10 @@ public class FrontEnd extends Application{
 
 	public void updateCollection() throws IOException {
 		collection.clear();
-        ArrayList<SamplePhoto> samplePhotos = null;
 		DataInputStream fromServer = new DataInputStream(socket.getInputStream());
 			while (true) {
+				ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
+				samplePhotos.clear();
 				System.out.println("We're in the updatecollection while Loop");
 				int type = fromServer.readInt(); // Outside Sample constructor, to break out of the loop once the key int is sent (100).
 				if (type == 100) return;
@@ -1793,13 +1795,18 @@ public class FrontEnd extends Application{
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-						fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF(), samplePhotos);
-
+						fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF());
+				// Build the samplePhotos ArrayList
+				int samplePhotoArraySize = fromServer.readInt();
+				for (int i = 0; i < samplePhotoArraySize; i++)
+					samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
+				newSample.setSamplePhotos(samplePhotos);
 				collection.put(newSample.getId(), newSample);
 				System.out.println(collection.size());
 				System.out.println(collection.get(newSample.getId()).getRockName());
 			}
-
+	}
+	public void sendEditedSample(Sample editedSample) {
 
 	}
 
