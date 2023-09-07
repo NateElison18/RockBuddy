@@ -33,6 +33,11 @@ public class FrontEnd extends Application{
 	DataInputStream fromServer;
 	Socket socket = new Socket("localhost", 8000);
 
+	static int terminateCode = 100;
+	static int sendCollectionCode = 200;
+	static int editSampleCode = 300;
+	static int deleteSampleCode = 400;
+
 	public FrontEnd() throws IOException {
 	}
 
@@ -495,7 +500,7 @@ public class FrontEnd extends Application{
 		return borderPane;
 	}
 
-	public BorderPane buildCollectionPane() {
+	public BorderPane buildCollectionPane() throws IOException {
 //		updateCollection();
 		System.out.println(collection.size());
 		BorderPane pane = new BorderPane();
@@ -756,7 +761,8 @@ public class FrontEnd extends Application{
 		});
 		deleteBt.setOnAction(event -> {
 			//		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
-			VBox areYouSurePane = areYouSurePane();
+			VBox areYouSurePane = null;
+			areYouSurePane = areYouSurePane((tableView.getSelectionModel().getSelectedItem()));
 			Scene areYouSure = new Scene(areYouSurePane);
 			Stage stage = new Stage();
 			stage.setScene(areYouSure);
@@ -950,7 +956,7 @@ public class FrontEnd extends Application{
 			String fileName = sample.getSamplePhotos().get(0).photoPathName;
 			imageInputStream = new FileInputStream(new File(fileName));
 		}
-		catch (FileNotFoundException | NullPointerException e) {
+		catch (FileNotFoundException | NullPointerException | IndexOutOfBoundsException e) {
 			String fileName = "Images/placeholder.jpg";
 			imageInputStream = new FileInputStream(new File(fileName));
 		}
@@ -1214,7 +1220,11 @@ public class FrontEnd extends Application{
 			collection.remove(originalId);
 			collection.put(idTf.getText(), newSample);
 			// TODO send updated hashmap to server.
-			sendEditedSample(newSample);
+			try {
+				sendEditedSample(newSample, originalId);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			// TODO display updated window
 			Stage stage = (Stage) applyBt.getScene().getWindow();
 
@@ -1544,7 +1554,7 @@ public class FrontEnd extends Application{
 	}
 	public void viewCollection() throws IOException {
         ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
-		toServer.writeObject(null);
+		toServer.writeObject(new Sample(sendCollectionCode));
         toServer.flush();
         updateCollection();
 		BorderPane borderPane = buildCollectionPane();
@@ -1641,7 +1651,7 @@ public class FrontEnd extends Application{
 		return vBox;
 	}
 
-	public VBox areYouSurePane() {
+	public VBox areYouSurePane(Sample sampleToBeDeleted) {
 		VBox vBox = new VBox();
 		Label areYouSureLb = new Label("Are you sure you want to delete this sample?");
 		Label finalLb = new Label("This cannot be undone.");
@@ -1666,9 +1676,13 @@ public class FrontEnd extends Application{
 			stage.close();
 		});
 
-		//TODO delete action
+		//TODO delete action Test this shit and make it so the window closes upon deletion
 		deleteBt.setOnAction(event -> {
-
+			try {
+				sendSampleForDeletion(sampleToBeDeleted);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		});
 
 		return vBox;
@@ -1789,7 +1803,11 @@ public class FrontEnd extends Application{
 				samplePhotos.clear();
 				System.out.println("We're in the updatecollection while Loop");
 				int type = fromServer.readInt(); // Outside Sample constructor, to break out of the loop once the key int is sent (100).
-				if (type == 100) return;
+				System.out.println("received type " + type);
+				if (type == 100) {
+					System.out.println("received termination code. Ending updateCollection method");
+					return;
+				}
 				Sample newSample = new Sample(type, fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
@@ -1802,12 +1820,27 @@ public class FrontEnd extends Application{
 					samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
 				newSample.setSamplePhotos(samplePhotos);
 				collection.put(newSample.getId(), newSample);
+				System.out.println("Adding sample named: " + collection.get(newSample.getId()).getRockName() + " with ID " + newSample.getId());
 				System.out.println(collection.size());
-				System.out.println(collection.get(newSample.getId()).getRockName());
 			}
 	}
-	public void sendEditedSample(Sample editedSample) {
+	public void sendEditedSample(Sample editedSample, String originalId) throws IOException {
+		ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
+		toServer.writeObject(new Sample(editSampleCode)); // Send Sample w code so backend knows to expect a Sample that has been edited.
+		System.out.println("Sending edited Sample");
+		toServer.writeObject(editedSample);
+		System.out.println("Sending og id");
+		toServer.writeUTF(originalId); // Send the original id, just in case the id was edited
+		toServer.flush();
+		System.out.println("All info sent");
 
+	}
+	public void sendSampleForDeletion(Sample sampleToBeDeleted) throws IOException {
+		ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
+		toServer.writeObject(new Sample(deleteSampleCode)); // Send Sample w code so backend knows to expect a Sample that has been edited.
+		System.out.println("Id of sample to be deleted");
+		toServer.writeUTF(sampleToBeDeleted.getId());
+		toServer.flush();
 	}
 
 

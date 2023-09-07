@@ -28,6 +28,10 @@ public class Sample implements Serializable {
 
 	Sample(){}
 
+	// Constructor for sending codes to the backend
+	Sample(int code) {
+		generalType = code;
+	}
 	// Constructor for everything
 	Sample(int generalType, String rockName, String id, String location, String color, String composition, String texture, String structures, String rounding,
 			String luster, String grainSize, String cleavage, String mineralSize, String otherFeatures, String fossilDescription, boolean fossilContent,

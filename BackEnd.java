@@ -14,7 +14,7 @@ import java.util.Scanner;
 // TODO Fix issue where samples are not appending between program runs
 public class BackEnd {
     static ObjectInputStream objectFromFile;
-    static ArrayList<Sample> collection = new ArrayList<Sample>();
+    static HashMap<String, Sample> collection = new HashMap<>();
 
 
     static DataOutputStream outputToClient;
@@ -24,6 +24,11 @@ public class BackEnd {
 
     static ServerSocket serverSocket;
     static Socket socket;
+
+    static int terminateCode = 100;
+    static int sendCollectionCode = 200;
+    static int editSampleCode = 300;
+    static int deleteSampleCode = 400;
 
 
 
@@ -35,9 +40,12 @@ public class BackEnd {
         new Thread( () -> {
             // Update collection at the start of the program
             try {
-                collection = (ArrayList<Sample>) objectFromFile.readObject();
+                objectFromFile = new ObjectInputStream(new FileInputStream("samples.txt"));
+                collection = (HashMap<String, Sample>) objectFromFile.readObject();
+                System.out.println(collection.size());
             } catch (IOException | ClassNotFoundException | NullPointerException e) {
                 System.out.println("No samples found in sample.txt");
+                e.printStackTrace();
             }
 
             try {
@@ -49,50 +57,46 @@ public class BackEnd {
                 while (true) {
                     inputFromClient = new ObjectInputStream(socket.getInputStream());
                     Sample sampleReceived = (Sample) inputFromClient.readObject();
-                    // Send the collection
-                    if (sampleReceived == null) {
-
+                    // Check for the code in the generalType of the sample and perform the action indicated.
+                    if (sampleReceived.getGeneralType() == sendCollectionCode) {
                         try {
-                            objectFromFile = new ObjectInputStream(Files.newInputStream(Paths.get("samples.txt")));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            for (int i = 0; i < collection.size(); i++){
-                                Sample sample = collection.get(i);
+                            collection.forEach((id, sample) -> {
                                 System.out.println("Pulled sample named " + sample.getRockName());
-
-                                outputToClient.writeInt(sample.getGeneralType());
-                                outputToClient.writeUTF(sample.getRockName());
-                                outputToClient.writeUTF(sample.getId());
-                                outputToClient.writeUTF(sample.getLocation());
-                                outputToClient.writeUTF(sample.getColor());
-                                outputToClient.writeUTF(sample.getComposition());
-                                outputToClient.writeUTF(sample.getTexture());
-                                outputToClient.writeUTF(sample.getStructures());
-                                outputToClient.writeUTF(sample.getRounding());
-                                outputToClient.writeUTF(sample.getLuster());
-                                outputToClient.writeUTF(sample.getGrainSize());
-                                outputToClient.writeUTF(sample.getCleavage());
-                                outputToClient.writeUTF(sample.getMineralSize());
-                                outputToClient.writeUTF(sample.getOtherFeatures());
-                                outputToClient.writeUTF(sample.getFossilDescription());
-                                outputToClient.writeBoolean(sample.getFossilContent());
-                                outputToClient.writeUTF(sample.getSize());
-                                // Sending info for the photoSamples
-                                ArrayList<SamplePhoto> samplePhotos = sample.getSamplePhotos();
-                                samplePhotos.clear();
-                                outputToClient.writeInt(samplePhotos.size());
-                                for (int j = 0; j < samplePhotos.size(); j++) {
-                                    outputToClient.writeUTF(samplePhotos.get(j).getPhotoPathName());
-                                    outputToClient.writeUTF(samplePhotos.get(j).getPhotoDescription());
+                                try {
+                                    outputToClient.writeInt(sample.getGeneralType());
+                                    outputToClient.writeUTF(sample.getRockName());
+                                    outputToClient.writeUTF(sample.getId());
+                                    outputToClient.writeUTF(sample.getLocation());
+                                    outputToClient.writeUTF(sample.getColor());
+                                    outputToClient.writeUTF(sample.getComposition());
+                                    outputToClient.writeUTF(sample.getTexture());
+                                    outputToClient.writeUTF(sample.getStructures());
+                                    outputToClient.writeUTF(sample.getRounding());
+                                    outputToClient.writeUTF(sample.getLuster());
+                                    outputToClient.writeUTF(sample.getGrainSize());
+                                    outputToClient.writeUTF(sample.getCleavage());
+                                    outputToClient.writeUTF(sample.getMineralSize());
+                                    outputToClient.writeUTF(sample.getOtherFeatures());
+                                    outputToClient.writeUTF(sample.getFossilDescription());
+                                    outputToClient.writeBoolean(sample.getFossilContent());
+                                    outputToClient.writeUTF(sample.getSize());
+                                    // Sending info for the photoSamples
+                                    ArrayList<SamplePhoto> samplePhotos = sample.getSamplePhotos();
+                                    samplePhotos.clear();
+                                    outputToClient.writeInt(samplePhotos.size());
+                                    for (int j = 0; j < samplePhotos.size(); j++) {
+                                        outputToClient.writeUTF(samplePhotos.get(j).getPhotoPathName());
+                                        outputToClient.writeUTF(samplePhotos.get(j).getPhotoDescription());
+                                    }
+                                    outputToClient.flush();
+                                    System.out.println("Sent sample named " + sample.getRockName());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 }
-                                outputToClient.flush();
-                                System.out.println("Sent sample named " + sample.getRockName());
-                            }
+                            });
                             System.out.println("All samples sent, sending flag to end frontend listening method");
                             // Send flag int to tell client to stop expecting more samples
-                            outputToClient.writeInt(100);
+                            outputToClient.writeInt(terminateCode);
                         } catch (IOException e) {
 
                             System.out.println(e.getStackTrace());
@@ -106,12 +110,40 @@ public class BackEnd {
 //                                "5 cm across", new ArrayList<SamplePhoto>());
 
                     }
-                    // If the sample recieved is not null, it is saved to the file.
+                    else if (sampleReceived.getGeneralType() == editSampleCode){
+                        Sample editedSample = (Sample) inputFromClient.readObject();
+                        String originalId = inputFromClient.readUTF();
+                        // Recompile collection, just in case it has been changed
+                        objectFromFile = new ObjectInputStream(new FileInputStream("samples.txt")); // reset input stream so that it reads the first object
+                        collection = (HashMap<String, Sample>) objectFromFile.readObject();
+                        // Remove old Sample, put new sample
+                        collection.remove(originalId);
+                        collection.put(editedSample.getId(), editedSample);
+                        // Save updated collection to the file
+                        outputToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", false));
+                        outputToFile.writeObject(collection);
+                        outputToFile.flush();
+
+                    }
+                    else if (sampleReceived.getGeneralType() == deleteSampleCode) {
+                        String idToBeDeleted = inputFromClient.readUTF();
+                        // Recompile collection, just in case it has been changed
+                        objectFromFile = new ObjectInputStream(new FileInputStream("samples.txt")); // reset input stream so that it reads the first object
+                        collection = (HashMap<String, Sample>) objectFromFile.readObject();
+                        // Remove sample
+                        collection.remove(idToBeDeleted);
+                        // Save updated collection to the file
+                        outputToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", false));
+                        outputToFile.writeObject(collection);
+                        outputToFile.flush();
+                    }
+                    // If the generalType is between 0-3, save the sample to the file.
                     else {
-                        collection.add(sampleReceived);
-                        outputToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", true));
+                        collection.put(sampleReceived.getId(), sampleReceived);
+                        outputToFile = new ObjectOutputStream(new FileOutputStream("samples.txt", false));
 
                         outputToFile.writeObject(collection);
+                        outputToFile.flush();
 
 
                     }
