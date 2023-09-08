@@ -24,7 +24,7 @@ public class Sample implements Serializable {
 	ArrayList<SamplePhoto> samplePhotos = new ArrayList<SamplePhoto>();
 
 	boolean fossilContent;
-	Date dateLogged;
+	String dateLogged;
 
 	Sample(){}
 
@@ -54,7 +54,7 @@ public class Sample implements Serializable {
 		this.fossilDescription = fossilDescription;
 		this.size = size;
 		this.samplePhotos = samplePhotos;
-		dateLogged = new Date();
+		dateLogged = new Date().toString();
 
 		switch (generalType){
 			case 0:
@@ -98,7 +98,8 @@ public class Sample implements Serializable {
 		this.fossilDescription = fossilDescription;
 		this.size = size;
 		this.samplePhotos = samplePhotos;
-		dateLogged = new Date();
+		dateLogged = new Date().toString();
+		System.out.println(dateLogged);
 
 		switch (generalType){
 			case 0:
@@ -210,6 +211,9 @@ public class Sample implements Serializable {
 	public String getOtherFeatures() {
 		return otherFeatures;
 	}
+	public String getDateLogged() {
+		return dateLogged;
+	}
 	public ArrayList<SamplePhoto> getSamplePhotos() {
 		return samplePhotos;
 	}
@@ -219,5 +223,8 @@ public class Sample implements Serializable {
 	}
 	public void setSamplePhotos(ArrayList<SamplePhoto> samplePhotos) {
 		this.samplePhotos = samplePhotos;
+	}
+	public void setDateLogged(String dateLogged){
+		this.dateLogged = dateLogged;
 	}
 }

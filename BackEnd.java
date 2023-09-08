@@ -44,7 +44,6 @@ public class BackEnd {
                 collection = (HashMap<String, Sample>) objectFromFile.readObject();
                 System.out.println(collection.size());
             } catch (IOException | ClassNotFoundException | NullPointerException e) {
-                System.out.println("No samples found in sample.txt");
                 e.printStackTrace();
             }
 
@@ -82,19 +81,19 @@ public class BackEnd {
                                     outputToClient.writeUTF(sample.getSize());
                                     // Sending info for the photoSamples
                                     ArrayList<SamplePhoto> samplePhotos = sample.getSamplePhotos();
-                                    samplePhotos.clear();
                                     outputToClient.writeInt(samplePhotos.size());
+                                    System.out.println("Sample " + sample.getRockName() + " has a photo array list size of " + samplePhotos.size());
                                     for (int j = 0; j < samplePhotos.size(); j++) {
                                         outputToClient.writeUTF(samplePhotos.get(j).getPhotoPathName());
                                         outputToClient.writeUTF(samplePhotos.get(j).getPhotoDescription());
                                     }
+                                    outputToClient.writeUTF(sample.getDateLogged());
                                     outputToClient.flush();
                                     System.out.println("Sent sample named " + sample.getRockName());
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                             });
-                            System.out.println("All samples sent, sending flag to end frontend listening method");
                             // Send flag int to tell client to stop expecting more samples
                             outputToClient.writeInt(terminateCode);
                         } catch (IOException e) {

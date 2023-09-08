@@ -1,10 +1,12 @@
 import javafx.application.Application;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -13,10 +15,12 @@ import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.control.CustomMenuItem;
+import javafx.util.Callback;
 
 
 import java.io.*;
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -511,6 +515,15 @@ public class FrontEnd extends Application{
 		StackPane centerPane = new StackPane(scrollPane);
 		ObservableList<Sample> collection = FXCollections.observableArrayList();
 		ArrayList<Sample> samplesArraylist = new ArrayList<>(this.collection.values());
+		ArrayList<Sample> samplesWFossilContent = new ArrayList<>();
+		ArrayList<Sample> samplesWOFossilContent = new ArrayList<>();
+		// Initialize ArrayLists of samples w and wo fossil content
+		for (int i = 0; i < samplesArraylist.size(); i++){
+			if (samplesArraylist.get(i).fossilContent)
+				samplesWFossilContent.add(samplesArraylist.get(i));
+			else
+				samplesWOFossilContent.add(samplesArraylist.get(i));
+		}
 		TableColumn rockNameCl = new TableColumn("Name");
 		TableColumn rockIdCl = new TableColumn("Id");
 
@@ -526,7 +539,6 @@ public class FrontEnd extends Application{
 		TableColumn mineralCleavagesCl = new TableColumn("Cleavages");
 		TableColumn rockSizeCl = new TableColumn("Sample Size");
 		TableColumn dateLoggedCl = new TableColumn("Date Logged");
-		TableColumn fossilContentCl = new TableColumn("Fossil Content?");
 
 		title.setPadding(new Insets(5));
 		title.setFont(new Font(18));
@@ -550,8 +562,7 @@ public class FrontEnd extends Application{
 		clastSizeCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("grainSize"));
 		mineralCleavagesCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("cleavage"));
 		rockSizeCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("size"));
-		dateLoggedCl.setCellValueFactory(new PropertyValueFactory<Sample, Date>("dateLogged"));
-		fossilContentCl.setCellValueFactory(new PropertyValueFactory<Sample, Boolean>("fossilContent"));
+		dateLoggedCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("dateLogged"));
 		rockNameCl.setMinWidth(100);
 		rockIdCl.setMinWidth(100);
 		rockTypeCl.setMinWidth(100);
@@ -566,10 +577,9 @@ public class FrontEnd extends Application{
 		mineralCleavagesCl.setMinWidth(100);
 		rockSizeCl.setMinWidth(100);
 		dateLoggedCl.setMinWidth(100);
-		fossilContentCl.setMinWidth(100);
 
 		tableView.getColumns().addAll(rockNameCl, rockIdCl, rockTypeCl, locationFoundCl, rockCompositionCl,
-				rockTextureCl, rockStructureCl, rockSizeCl, fossilContentCl);
+				rockTextureCl, rockStructureCl, rockSizeCl, dateLoggedCl);
 		tableView.setMaxWidth(902);
 
 		// TODO build filter pane
@@ -588,7 +598,7 @@ public class FrontEnd extends Application{
 		CheckBox cleavages = new CheckBox("Cleavages");
 		CheckBox date = new CheckBox("Date Logged");
 
-		CheckBox fossilContent = new CheckBox("Fossil Content");
+//		CheckBox fossilContent = new CheckBox("Fossil Content");
 		CheckBox size = new CheckBox("Size");
 
 		MenuButton columnsMenu = 			new MenuButton("Show/Hide Columns");
@@ -606,7 +616,6 @@ public class FrontEnd extends Application{
 		CustomMenuItem cleavagesCb = 		new CustomMenuItem(cleavages);
 		CustomMenuItem sampleSizeCb = 		new CustomMenuItem(size);
 		CustomMenuItem dateCb = 			new CustomMenuItem(date);
-		CustomMenuItem fossilContentCb = 	new CustomMenuItem(fossilContent);
 		MenuItem apply = 					new MenuItem("Apply");
 
 		name.setSelected(true);
@@ -616,8 +625,8 @@ public class FrontEnd extends Application{
 		composition.setSelected(true);
 		textures.setSelected(true);
 		structures.setSelected(true);
-		fossilContent.setSelected(true);
 		size.setSelected(true);
+		date.setSelected(true);
 
 		nameCb.setHideOnClick(false);
 		idCb.setHideOnClick(false);
@@ -633,13 +642,12 @@ public class FrontEnd extends Application{
 		cleavagesCb.setHideOnClick(false);
 		sampleSizeCb.setHideOnClick(false);
 		dateCb.setHideOnClick(false);
-		fossilContentCb.setHideOnClick(false);
 
 		columnsMenu.getItems().addAll(nameCb, idCb, typeCb, locationCb, compositionCb, textureCb,
 				structureCb, roundingCB, lusterCb, mineralSizeCb, grainSizesCb, cleavagesCb,
-				sampleSizeCb, dateCb, fossilContentCb, apply);
+				sampleSizeCb, dateCb, apply);
 
-		// Build filter elements TODO is this redundant?
+		// Build filter elements
 		VBox filtersBox = new VBox();
 		Label filterLb = new Label("Filters:");
 		HBox radioButtonBox = new HBox();
@@ -649,7 +657,17 @@ public class FrontEnd extends Application{
 		RadioButton unkRb = new RadioButton("Unknown");
 		RadioButton allRb = new RadioButton("All");
 		ToggleGroup typeTG = new ToggleGroup();
-		CheckBox filterFossilContent = new CheckBox("Fossil Content");
+		RadioButton filterFossilContent = new RadioButton("With Fossil Content");
+		RadioButton filterNoFossilContent = new RadioButton("Without Fossil Content");
+		RadioButton noFilter = new RadioButton("No Fossil Filter");
+		ToggleGroup fossilFilterTG = new ToggleGroup();
+
+
+		filterFossilContent.setText("With Fossil Content");
+		filterFossilContent.setToggleGroup(fossilFilterTG);
+		filterNoFossilContent.setToggleGroup(fossilFilterTG);
+		noFilter.setToggleGroup(fossilFilterTG);
+		noFilter.setSelected(true);
 
 		sedRb.setToggleGroup(typeTG);
 		metaRb.setToggleGroup(typeTG);
@@ -657,8 +675,8 @@ public class FrontEnd extends Application{
 		unkRb.setToggleGroup(typeTG);
 		allRb.setToggleGroup(typeTG);
 		allRb.setSelected(true);
-		radioButtonBox.getChildren().addAll(sedRb, metaRb, ignRb, unkRb, allRb, filterFossilContent);
-		radioButtonBox.setSpacing(5);
+		radioButtonBox.getChildren().addAll(filterFossilContent, filterNoFossilContent, noFilter);
+		radioButtonBox.setSpacing(10);
 
 		filtersBox.getChildren().addAll(filterLb, radioButtonBox);
 		filtersBox.setAlignment(Pos.TOP_LEFT);
@@ -678,6 +696,23 @@ public class FrontEnd extends Application{
 		bottomPane.getChildren().addAll(columnsMenu, filtersBox, buttonHbox);
 		bottomPane.setMinWidth(viewCollectionPaneWidth);
 		bottomPane.setSpacing(50);
+
+		// Filter actions
+		filterFossilContent.setOnAction(event -> {
+			collection.clear();
+			collection.addAll(samplesWFossilContent);
+			tableView.setItems(collection);
+		});
+		filterNoFossilContent.setOnAction(event -> {
+			collection.clear();
+			collection.addAll(samplesWOFossilContent);
+			tableView.setItems(collection);
+		});
+		noFilter.setOnAction(event -> {
+			collection.clear();
+			collection.addAll(samplesArraylist);
+			tableView.setItems(collection);
+		});
 
 		// Show/Hide columns Apply action
 		apply.setOnAction(event -> {
@@ -739,10 +774,6 @@ public class FrontEnd extends Application{
 				count++;
 				tableView.getColumns().add(dateLoggedCl);
 			}
-			if (fossilContent.isSelected()){
-				count++;
-				tableView.getColumns().add(fossilContentCl);
-			}
 			tableView.setMaxWidth(count * 100.3);
 			if (count < 12) {
 				scrollPane.setFitToWidth(true);
@@ -757,7 +788,12 @@ public class FrontEnd extends Application{
 
 		// TODO Edit/remove buttons action
 		editBt.setOnAction(event -> {
-			selectASample();
+			selectedSample = tableView.getSelectionModel().getSelectedItem();
+			try {
+				editSample();
+			} catch (FileNotFoundException | InterruptedException e) {
+				e.printStackTrace();
+			}
 		});
 		deleteBt.setOnAction(event -> {
 			//		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
@@ -793,7 +829,6 @@ public class FrontEnd extends Application{
 		int vGap = 10;
 		int hGap = 5;
 		String originalId = sample.getId();
-		boolean idChange = false;
 		ArrayList<SamplePhoto> samplePhotos = sample.getSamplePhotos();
 		Insets padding = new Insets(5);
 		BorderPane borderPane = new BorderPane();
@@ -1239,6 +1274,12 @@ public class FrontEnd extends Application{
 			stage.show();
 
 			stage.close();
+			try {
+				viewCollection();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 		});
 
 		centerPane.getItems().addAll(leftCenterPane, rightPane);
@@ -1252,7 +1293,9 @@ public class FrontEnd extends Application{
 		int vGap = 10;
 		int hGap = 5;
 		photoToDisplayIndex = 0;
-		ArrayList<SamplePhoto> samplePhotos = sample.getSamplePhotos();
+		String id = sample.getId();
+		ArrayList<SamplePhoto> samplePhotos = collection.get(id).getSamplePhotos();
+		System.out.println("SamplePHotos size: " + samplePhotos.size());
 		Insets padding = new Insets(5);
 		BorderPane borderPane = new BorderPane();
 		borderPane.getStyleClass().add("container");
@@ -1406,7 +1449,7 @@ public class FrontEnd extends Application{
 		Label imageName = new Label();
 		Label imageCaption = new Label();
 		try {
-			String fileName = samplePhotos.get(photoToDisplayIndex).photoPathName;
+			String fileName = samplePhotos.get(0).photoPathName;
 			imageInputStream = new FileInputStream(fileName);
 			imageName.setText(samplePhotos.get(photoToDisplayIndex).getPhotoPathName());
 			imageCaption.setText(samplePhotos.get(photoToDisplayIndex).getPhotoDescription());
@@ -1416,6 +1459,8 @@ public class FrontEnd extends Application{
 			imageInputStream = new FileInputStream(fileName);
 			imageName.setText("Placeholder Image");
 			imageCaption.setText("No custom photo found.");
+			System.out.println("No pictures found");
+			e.printStackTrace();
 		}
 		Image image = new Image(imageInputStream);
 		ImageView imageView = new ImageView(image);
@@ -1613,7 +1658,7 @@ public class FrontEnd extends Application{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		System.out.println("Sample to be submitted has a photoarraylist of size: " + sample.getSamplePhotos().size());
 		VBox vBox = messageAndOKButtonPane("Sample Submitted Successfully!");
 		Scene addScene = new Scene(vBox, 230, 100);
 		Stage stage = new Stage();
@@ -1791,6 +1836,7 @@ public class FrontEnd extends Application{
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			stage.close();
 		});
 
 	}
@@ -1802,12 +1848,9 @@ public class FrontEnd extends Application{
 				ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
 				samplePhotos.clear();
 				System.out.println("We're in the updatecollection while Loop");
-				int type = fromServer.readInt(); // Outside Sample constructor, to break out of the loop once the key int is sent (100).
+				int type = fromServer.readInt(); // Outside Sample constructor method below, to break out of the loop once the key int is sent (100).
 				System.out.println("received type " + type);
-				if (type == 100) {
-					System.out.println("received termination code. Ending updateCollection method");
-					return;
-				}
+				if (type == terminateCode) return; // Check for terminate code, end method if received.
 				Sample newSample = new Sample(type, fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
@@ -1816,9 +1859,13 @@ public class FrontEnd extends Application{
 						fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF());
 				// Build the samplePhotos ArrayList
 				int samplePhotoArraySize = fromServer.readInt();
+				System.out.println("SamplePhoto array size in the update collection method: " + samplePhotoArraySize);
 				for (int i = 0; i < samplePhotoArraySize; i++)
 					samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
 				newSample.setSamplePhotos(samplePhotos);
+				// Get date logged and add it to the sample
+				String dateLogged = fromServer.readUTF();
+				newSample.setDateLogged(dateLogged);
 				collection.put(newSample.getId(), newSample);
 				System.out.println("Adding sample named: " + collection.get(newSample.getId()).getRockName() + " with ID " + newSample.getId());
 				System.out.println(collection.size());
@@ -1837,7 +1884,7 @@ public class FrontEnd extends Application{
 	}
 	public void sendSampleForDeletion(Sample sampleToBeDeleted) throws IOException {
 		ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
-		toServer.writeObject(new Sample(deleteSampleCode)); // Send Sample w code so backend knows to expect a Sample that has been edited.
+		toServer.writeObject(new Sample(deleteSampleCode)); // Send Sample w code so backend knows to expect the id of a sample to be deleted.
 		System.out.println("Id of sample to be deleted");
 		toServer.writeUTF(sampleToBeDeleted.getId());
 		toServer.flush();
