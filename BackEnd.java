@@ -97,7 +97,6 @@ public class BackEnd {
                             // Send flag int to tell client to stop expecting more samples
                             outputToClient.writeInt(terminateCode);
                         } catch (IOException e) {
-
                             System.out.println(e.getStackTrace());
                         }
 //                        Sample sample = new Sample(1, "Diorite", "Ig0001",

@@ -27,16 +27,19 @@ import java.util.HashMap;
 
 public class FrontEnd extends Application{
 	BorderPane mainPane = new BorderPane();
-	int mainPaneSize = 320;
-	int addPaneSize = 900;
-	int viewCollectionPaneSize = 600;
-	int viewCollectionPaneWidth = 1200;
-	int photoToDisplayIndex = 0;
 	HashMap<String, Sample> collection = new HashMap<>();
 	Sample selectedSample = new Sample();
 	DataInputStream fromServer;
 	Socket socket = new Socket("localhost", 8000);
 
+	int mainPaneSize = 320;
+	int addPaneSize = 900;
+	int viewCollectionPaneSize = 600;
+	int viewCollectionPaneWidth = 1200;
+	int photoToDisplayIndex = 0;
+
+
+	static BorderPane viewCollectionBorderPane = new BorderPane();
 	static int terminateCode = 100;
 	static int sendCollectionCode = 200;
 	static int editSampleCode = 300;
@@ -50,8 +53,7 @@ public class FrontEnd extends Application{
 	}
 
 	@Override
-	public void start(Stage primaryStage) throws IOException {
-//		collection = BackEnd.getTestCollection();
+	public void start(Stage primaryStage) {
 		buildTopPane();
 		buildCenterPane();
 		buildBottomPane();
@@ -60,35 +62,6 @@ public class FrontEnd extends Application{
 		primaryStage.setTitle("RockBuddy");
 		primaryStage.setScene(scene);
 		primaryStage.show();
-
-//		// Listen for and get updates to the collection
-//		new Thread(() -> {
-//			try {
-//				fromServer = new DataInputStream(socket.getInputStream());
-//				while (true) {
-//					ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
-////					System.out.println("Waiting for server to send sample photo album size");
-////					int samplePhotoSize = fromServer.readInt();
-////					System.out.println("Got the size of " + samplePhotoSize);
-////
-////					for (int i = 0; i < samplePhotoSize - 1; i++) {
-////						samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
-////					}
-////
-////					Sample newSample = new Sample(fromServer.readInt(), fromServer.readUTF(),
-////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-////							fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
-////							fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF(), samplePhotos);
-////					collection.put(newSample.getId(), newSample);
-////					System.out.println("Adding" + newSample.getRockName() + " w id " + newSample.getId());
-//				}
-//
-//			} catch (IOException e) {
-//				throw new RuntimeException(e);
-//			}
-//		}).start();
 	}
 
 	public void buildTopPane() {
@@ -159,6 +132,15 @@ public class FrontEnd extends Application{
 			}
 		});
 		editSampleBt.setOnAction(event -> {
+			try {
+				ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
+				toServer.writeObject(new Sample(sendCollectionCode));
+				toServer.flush();
+				updateCollection();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 			selectASample();
 		});
 		viewCollectionBt.setOnAction(event -> {
@@ -219,9 +201,10 @@ public class FrontEnd extends Application{
 		TextField sizeTf = new TextField();
 
 		TextArea otherFeatures = new TextArea();
+		otherFeatures.setEditable(true);
 
 		locationFoundTF.setPromptText("Location found...");
-		idTf.setPromptText("Sample id. If none entered, id will be auto-assigned.");
+		idTf.setPromptText("Sample id. If none entered, id will be generated");
 		nameTf.setPromptText("Sample name...");
 		colorTf.setPromptText("Sample color...");
 		compositionTf.setPromptText("Sample composition...");
@@ -241,7 +224,7 @@ public class FrontEnd extends Application{
 		VBox leftCenterPane = new VBox();
 		SplitPane centerPane = new SplitPane();
 		leftCenterPane.getChildren().addAll(rockTypesPane, fossilContent, gridPane);
-		gridPane.addColumn(0, locationFoundTF, idTf, nameTf, colorTf, compositionTf,
+		gridPane.addColumn(0, nameTf, idTf, locationFoundTF, colorTf, compositionTf,
 				textureTf, structuresTf, roundingTf, lusterTf, grainSizeTf, cleavageTf, mineralSizeTf,
 				sizeTf);
 
@@ -272,8 +255,10 @@ public class FrontEnd extends Application{
 		imageDescription.setPromptText("Add photo caption");
 		newImageFileName.setPromptText("Photo file name");
 		//TODO fix width of add picture text fields
-		imageDescription.getStyleClass().add("photo-text-field");
-		newImageFileName.getStyleClass().add("photo-text-field");
+//		imageDescription.getStyleClass().add("#photo-text-field");
+//		newImageFileName.getStyleClass().add("photo-text-field");
+		imageDescription.setMaxWidth(100);
+		newImageFileName.setMaxWidth(360);
 		addImageInstructions.setTextAlignment(TextAlignment.LEFT);
 
 		VBox picturePaneCenter = new VBox();
@@ -297,8 +282,9 @@ public class FrontEnd extends Application{
 		StackPane buttonPane = new StackPane(finalSubmitBt);
 		buttonPane.setAlignment(Pos.BOTTOM_RIGHT);
 		buttonPane.setPadding(padding);
-		StackPane bottomPane = new StackPane(otherFeatures, buttonPane);
+		VBox bottomPane = new VBox(otherFeatures, buttonPane);
 		bottomPane.setAlignment(Pos.TOP_LEFT);
+		bottomPane.setMaxHeight(200);
 
 		// Formatting
 		leftCenterPane.setAlignment(Pos.TOP_LEFT);
@@ -505,7 +491,6 @@ public class FrontEnd extends Application{
 	}
 
 	public BorderPane buildCollectionPane() throws IOException {
-//		updateCollection();
 		System.out.println(collection.size());
 		BorderPane pane = new BorderPane();
 		Label title = new Label("Collection:");
@@ -794,11 +779,13 @@ public class FrontEnd extends Application{
 			} catch (FileNotFoundException | InterruptedException e) {
 				e.printStackTrace();
 			}
+			Stage stage = (Stage) editBt.getScene().getWindow();
+			stage.close();
+
 		});
 		deleteBt.setOnAction(event -> {
 			//		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
-			VBox areYouSurePane = null;
-			areYouSurePane = areYouSurePane((tableView.getSelectionModel().getSelectedItem()));
+			VBox areYouSurePane = areYouSurePane((tableView.getSelectionModel().getSelectedItem()));
 			Scene areYouSure = new Scene(areYouSurePane);
 			Stage stage = new Stage();
 			stage.setScene(areYouSure);
@@ -1254,7 +1241,6 @@ public class FrontEnd extends Application{
 					otherFeaturesString, fossilDescription, fossilContentBool, size, samplePhotos);
 			collection.remove(originalId);
 			collection.put(idTf.getText(), newSample);
-			// TODO send updated hashmap to server.
 			try {
 				sendEditedSample(newSample, originalId);
 			} catch (IOException e) {
@@ -1263,22 +1249,13 @@ public class FrontEnd extends Application{
 			// TODO display updated window
 			Stage stage = (Stage) applyBt.getScene().getWindow();
 
-			VBox vBox = messageAndOKButtonPane("Sample Edited Successfully!");
-			Scene addScene = new Scene(vBox, 230, 100);
-			Stage newStage = new Stage();
-			vBox.getStyleClass().add("container");
-
-			addScene.getStylesheets().add("addSceneStyles.css");
-			stage.setScene(addScene);
-			stage.setTitle("Sample Edited");
-			stage.show();
-
 			stage.close();
 			try {
 				viewCollection();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			messageAndOKButtonPane("Sample Edited Successfully!", "Sample Edited");
 
 		});
 
@@ -1602,13 +1579,13 @@ public class FrontEnd extends Application{
 		toServer.writeObject(new Sample(sendCollectionCode));
         toServer.flush();
         updateCollection();
-		BorderPane borderPane = buildCollectionPane();
-		ScrollPane scrollPane = new ScrollPane(borderPane);
-		borderPane.getStyleClass().add("container");
+		viewCollectionBorderPane = buildCollectionPane();
+		ScrollPane scrollPane = new ScrollPane(viewCollectionBorderPane);
+		viewCollectionBorderPane.getStyleClass().add("container");
 
-		borderPane.setMinWidth(viewCollectionPaneSize);
-		borderPane.setMinHeight(viewCollectionPaneSize);
-		Scene viewCollectionScene = new Scene(borderPane, viewCollectionPaneWidth, viewCollectionPaneSize);
+		viewCollectionBorderPane.setMinWidth(viewCollectionPaneSize);
+		viewCollectionBorderPane.setMinHeight(viewCollectionPaneSize);
+		Scene viewCollectionScene = new Scene(viewCollectionBorderPane, viewCollectionPaneWidth, viewCollectionPaneSize);
 		Stage stage = new Stage();
 
 //		viewCollectionScene.getStylesheets().add("addSceneStyles.css");
@@ -1659,28 +1636,25 @@ public class FrontEnd extends Application{
 			e.printStackTrace();
 		}
 		System.out.println("Sample to be submitted has a photoarraylist of size: " + sample.getSamplePhotos().size());
-		VBox vBox = messageAndOKButtonPane("Sample Submitted Successfully!");
-		Scene addScene = new Scene(vBox, 230, 100);
-		Stage stage = new Stage();
-		vBox.getStyleClass().add("container");
-
-		addScene.getStylesheets().add("addSceneStyles.css");
-		stage.setScene(addScene);
-		stage.setTitle("Sample Submission");
-		stage.show();
+		messageAndOKButtonPane("Sample Submitted Successfully!", "Sample Submission");
 
 	}
 
 	// TODO generate ID
 	public String generateId(int rockType) {
-		String id = "";
-		return id;
+		String generatedId = "";
+		int count = 0;
+//		collection.forEach((id, sample) -> {
+//			if (sample.)
+//		});
+
+
+		return generatedId;
 	}
 
-	public VBox messageAndOKButtonPane(String message) {
+	public void messageAndOKButtonPane(String message, String title) {
 		VBox vBox = new VBox();
 		Label submitted = new Label(message);
-//		);
 		Button okBt = new Button("OK");
 		vBox.getChildren().addAll(submitted, okBt);
 		vBox.setSpacing(10);
@@ -1688,12 +1662,17 @@ public class FrontEnd extends Application{
 		vBox.setPadding(new Insets(5));
 		submitted.setFont(new Font(14));
 
-		okBt.setOnAction(event -> {
-			Stage stage = (Stage) okBt.getScene().getWindow();
-			stage.close();
-		});
+		Scene addScene = new Scene(vBox, 230, 100);
+		Stage stage = new Stage();
+		vBox.getStyleClass().add("container");
 
-		return vBox;
+		addScene.getStylesheets().add("addSceneStyles.css");
+		stage.setScene(addScene);
+		stage.setTitle(title);
+		stage.show();
+
+		okBt.setOnAction(event -> stage.close());
+
 	}
 
 	public VBox areYouSurePane(Sample sampleToBeDeleted) {
@@ -1728,6 +1707,9 @@ public class FrontEnd extends Application{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			Stage stage = (Stage) noGoBackBt.getScene().getWindow();
+			stage.close();
+			messageAndOKButtonPane("Sample " + sampleToBeDeleted.getRockName() + " deleted.", "Sample Deleted");
 		});
 
 		return vBox;
@@ -1889,6 +1871,4 @@ public class FrontEnd extends Application{
 		toServer.writeUTF(sampleToBeDeleted.getId());
 		toServer.flush();
 	}
-
-
 }
