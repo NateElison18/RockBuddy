@@ -1,7 +1,8 @@
 # RockBuddy
 
 ## Synopsis
-This program is a rock collection companion app. It provides a way for rock collectors to digitize their collection. Users can add samples, edit samples, remove samples, and view their collection. Samples include the rock name, rock id, composition, structures, and more. Users can add multiple pictures per Sample if they wish. I had 15 hours to build the project. 
+This program is a rock collection companion app. It provides a way for rock collectors to digitize their collection. Users can add samples, edit samples, remove samples, and view their collection. Samples include the rock name, rock id, composition, structures, and more. Users can add multiple pictures per Sample if they wish.
+The program simulates a real world client-server interaction by sending information back and forth between the FrontEnd and the BackEnd.
 
 ## Motivation
 Apart from demonstrating what I learned in Industry Projects at Southwest Tech, I wanted a way to categorize and easily view rock samples that I have collected. I also have friends who enjoy rock tumbling and would like ways to document the process of the samples they tumble.
