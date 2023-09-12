@@ -2,6 +2,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 
+/**
+ * <h1>Sample</h1>
+ * The Sample class creates Sample objects. Multiple constructors are available and used in the program: one that takes only the generalType, one with everything,
+ * and a final that takes everything but the SamplePhotos array.
+ *
+ * <p>Last updated 9/12/23</p>
+ *
+ * @author Nate Elison
+ */
 public class Sample implements Serializable {
 	int generalType; // 0 == sed, 1 == ign, 2 == meta, 3 == unknown
 	String rockTypeString;
@@ -69,9 +78,6 @@ public class Sample implements Serializable {
 				rockTypeString = "Unknown";
 				break;
 		}
-		// Initialize samplePhotos array w a placeholder if null
-//		if (samplePhotos == null)
-//			this.samplePhotos.add(new SamplePhoto("Images/placeholder.jpg", "placeholder image"));
 
 
 	}
@@ -98,7 +104,6 @@ public class Sample implements Serializable {
 		this.size = size;
 		this.samplePhotos = samplePhotos;
 		dateLogged = new Date().toString();
-		System.out.println(dateLogged);
 
 		switch (generalType){
 			case 0:
@@ -114,49 +119,7 @@ public class Sample implements Serializable {
 				rockTypeString = "Unknown";
 				break;
 		}
-		// Initialize samplePhotos array w a placeholder if null
-//		if (samplePhotos == null)
-//			this.samplePhotos.add(new SamplePhoto("Images/placeholder.jpg", "placeholder image"));
-
-
 	}
-	
-//	// Igneous constructor
-//	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture,
-//			String structures, String luster, String cleavage, String mineralSize, String otherFeatures, String size) {
-//		this.location = location;
-//		this.generalType = generalType;
-//		this.rockName = rockName;
-//		this.id = id;
-//		this.color = color;
-//		this.composition = composition;
-//		this.texture = texture;
-//		this.structures = structures;
-//		this.luster = luster;
-//		this.cleavage = cleavage;
-//		this.mineralSize = mineralSize;
-//		this.otherFeatures = otherFeatures;
-//		this.size = size;
-//	}
-//
-//	// Sedimentary constructor
-//	Sample(int generalType, String location, String rockName, String id, String color, String composition, String texture, String structures,
-//		   String rounding, String grainSize, String otherFeatures, String fossilDescription, boolean fossilContent, String size) {
-//		this.location = location;
-//		this.generalType = generalType;
-//		this.rockName = rockName;
-//		this.id = id;
-//		this.color = color;
-//		this.composition = composition;
-//		this.texture = texture;
-//		this.structures = structures;
-//		this.rounding = rounding;
-//		this.grainSize = grainSize;
-//		this.otherFeatures = otherFeatures;
-//		this.fossilContent = fossilContent;
-//		this.fossilDescription = fossilDescription;
-//		this.size = size;
-//	}
 
 	// Getters
 	int getGeneralType() {
