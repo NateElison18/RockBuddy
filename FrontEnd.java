@@ -20,6 +20,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * <h1>FrontEnd</h1>
+ * This class contains all the front end/client code for Rock Buddy
+ *
+ * <p>Last Updated 9/11/23</p>
+ * @throws IOException
+ *
+ * @author Nate Elison
+ */
 public class FrontEnd extends Application{
 	BorderPane mainPane = new BorderPane();
 	HashMap<String, Sample> collection = new HashMap<>();
@@ -38,15 +47,7 @@ public class FrontEnd extends Application{
 	int viewCollectionPaneWidth = 1200;
 	int photoToDisplayIndex = 0;
 
-	/**
-	 * <h1>FrontEnd</h1>
-	 * This class contains all the front end/client code for Rock Buddy
-	 *
-	 * <p>Last Updated 9/11/23</p>
-	 * @throws IOException
-	 *
-	 * @author Nate Elison
-	 */
+
 	public FrontEnd() throws IOException {
 	}
 
@@ -938,7 +939,7 @@ public class FrontEnd extends Application{
 		otherFeatures.setText(sample.getOtherFeatures());
 		otherFeatures.setWrapText(true);
 
-		idTf.setEditable(false); //Changing the id is fucking things up. Will work around this in a future update.
+		idTf.setEditable(false); //Changing the id is screwing things up. Will work around this in a future update.
 
 		// VBoxes to hold labels and TFs
 		VBox nameBox = new VBox();
@@ -1823,7 +1824,15 @@ public class FrontEnd extends Application{
 		okBt.setOnAction(event -> stage.close());
 
 	}
-
+	
+	/**
+	 * This method builds and returns a VBox that contains an are you sure message along with a final delete and a go back button.
+	 * The final delete calls the method to send the sample to be deleted and reopens the view collection window. 
+	 * The go back button closes the window and reopens the view collection window.
+	 * 
+	 * @param sampleToBeDeleted (Sample; the sample to be deleted.)
+	 * @return vBox (VBox; the box containing the label and buttons.)
+	 */
 	public VBox areYouSurePane(Sample sampleToBeDeleted) {
 		VBox vBox = new VBox();
 		Label areYouSureLb = new Label("Are you sure you want to delete this sample?");
@@ -1874,7 +1883,11 @@ public class FrontEnd extends Application{
 
 		return vBox;
 	}
-
+	
+	/**
+	 * This method displays a window that lets the user know if the photo they tried to add to the sample was successful or not.
+	 * @param addSuccessful (boolean; true if the action was successful, false if the file path entered could not be found.)
+	 */
 	public void addPhotoWindow(boolean addSuccessful) {
 		VBox vBox = new VBox();
 		Scene addScene = new Scene(vBox, 300, 100);
@@ -1900,7 +1913,11 @@ public class FrontEnd extends Application{
 		}
 		closeBt.setOnAction(event -> stage.close());
 	}
-
+	
+	/**
+	 * This method displays a window that lets the user know if the photo they tried to remove from the sample was successful or not.
+	 * @param removeSuccessful (boolean; true if the action was successful, false if the file path entered could not be found.)
+	 */
 	public void removeImageWindow(boolean removeSuccessful) {
 		VBox vBox = new VBox();
 		Scene addScene = new Scene(vBox, 300, 100);
@@ -1926,6 +1943,11 @@ public class FrontEnd extends Application{
 		}
 		closeBt.setOnAction(event -> stage.close());
 	}
+	
+	/**
+	 * This method displays a window with a table containing all the samples' names and id. The user selects an id and clicks the button.
+	 * When the button is clicked, the global selectedSample is updated to that sample and the editSample method is called.
+	*/
 	public void selectASample() {
 		BorderPane pane = new BorderPane();
 		TableView<Sample> tableView = new TableView<>();
@@ -1980,7 +2002,15 @@ public class FrontEnd extends Application{
 		});
 
 	}
-
+	
+	/**
+	 * This method updates the collection HashMap. It first clears the collection and then listens for data to be sent by the server.
+	 * Once the type received by the client equals 100, the method ends as all the samples have been sent.
+	 * The method creates a samplePhotos arrayList of Sample Photos and populates that as well depending on the number of photos
+	 * (which is also sent as an int by the server), which is then saved to the sample as it's SamplePhotos arraylist, before the sample 
+	 * is saved to the collection HashMap with the sample's ID as the key. 
+	 * @throws IOException
+	 */
 	public void updateCollection() throws IOException {
 		collection.clear();
 		DataInputStream fromServer = new DataInputStream(socket.getInputStream());
@@ -2011,6 +2041,16 @@ public class FrontEnd extends Application{
 				System.out.println(collection.size());
 			}
 	}
+	
+	/**
+	 * This method sends the server a sample with the key that indicates to the server to expect a sample to be edited and a string.
+	 * It then sends a Sample that has been edited and that sample's original ID. The server (BackEnd) removes the sample
+	 *  with the originalId as a key, before adding the editedSample to the .txt file.
+	 *  
+	 * @param editedSample (Sample; the sample that has been edited, to be sent to the server)
+	 * @param originalId (String; the original sample's id)
+	 * @throws IOException
+	*/
 	public void sendEditedSample(Sample editedSample, String originalId) throws IOException {
 		ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 		toServer.writeObject(new Sample(editSampleCode)); // Send Sample w code so backend knows to expect a Sample that has been edited.
@@ -2022,6 +2062,14 @@ public class FrontEnd extends Application{
 		System.out.println("All info sent");
 
 	}
+	
+	/**
+	 * This method sends a sample to the server with the deletedSampleCode so the backend expects another sample that it then removes 
+	 * from the collection. The method then sends the sample to be deleted.
+	 * 
+	 * @param sampleToBeDeleted (Sample; the sample that is sent for deletion.)
+	 * @throws IOException
+	*/
 	public void sendSampleForDeletion(Sample sampleToBeDeleted) throws IOException {
 		ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 		toServer.writeObject(new Sample(deleteSampleCode)); // Send Sample w code so backend knows to expect the id of a sample to be deleted.
