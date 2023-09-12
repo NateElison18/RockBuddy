@@ -1,4 +1,3 @@
-import com.sun.security.ntlm.Server;
 
 import javax.xml.crypto.Data;
 import java.io.*;
@@ -11,6 +10,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+	/**
+	 * <h1>Backend</h1>
+	 * This class runs the BackEnd constructor and contains all the 'backend' code that receives Samples, 
+	 * saves the collection to the .txt file, reads the collection off the .txt file, and edits the collection.
+	 *
+	 * <p>Last Updated 9/12/23</p>
+	 * @throws IOException
+	 *
+	 * @author Nate Elison
+	 */
 public class BackEnd {
     static HashMap<String, Sample> collection = new HashMap<>();
 
@@ -32,7 +41,19 @@ public class BackEnd {
     public static void main(String[] args) throws IOException {
         new BackEnd();
     }
-
+    
+    /**
+     * The BackEnd Constructor starts a thread. The thread tries to read the collection from the .txt file, creates the network components 
+     * (ServerSocket, Socket, Output and input streams). 
+     * Then it waits for a sample to be sent. When a sample is received, it checks the generalType of that sample. If it has a code matching 
+     * one of the global static ints (100 = termination, 200 = send Collection, 300 = edit Sample, 400 = delete sample), it runs the corresponding 
+     * code. If not, the BackEnd assumes that sample should be saved and adds it to the collection and saves the collection to the .txt file.
+     * 
+     * Please note: I would have loved to break this class out into methods (following OOP principles), however I ran into issues accessing global
+     * variables and objects which have been updated in the thread, in any other methods. I would love to make this code more readable with future updates.
+     * @throws IOException
+     * @throws NullPointerException
+     */
     public BackEnd() throws IOException, NullPointerException {
         new Thread( () -> {
             try { // Update collection at the start of the program
