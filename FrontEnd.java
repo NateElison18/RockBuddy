@@ -1,12 +1,10 @@
 import javafx.application.Application;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -15,29 +13,18 @@ import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.control.CustomMenuItem;
-import javafx.util.Callback;
-
 
 import java.io.*;
 import java.net.*;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class FrontEnd extends Application{
 	BorderPane mainPane = new BorderPane();
 	HashMap<String, Sample> collection = new HashMap<>();
 	Sample selectedSample = new Sample();
-	DataInputStream fromServer;
 	Socket socket = new Socket("localhost", 8000);
-
-	int mainPaneSize = 320;
-	int addPaneSize = 900;
-	int viewCollectionPaneSize = 600;
-	int viewCollectionPaneWidth = 1200;
-	int photoToDisplayIndex = 0;
-
 
 	static BorderPane viewCollectionBorderPane = new BorderPane();
 	static int terminateCode = 100;
@@ -45,13 +32,39 @@ public class FrontEnd extends Application{
 	static int editSampleCode = 300;
 	static int deleteSampleCode = 400;
 
+	int mainPaneSize = 320;
+	int addPaneSize = 900;
+	int viewCollectionPaneSize = 600;
+	int viewCollectionPaneWidth = 1200;
+	int photoToDisplayIndex = 0;
+
+	/**
+	 * <h1>FrontEnd</h1>
+	 * This class contains all the front end/client code for Rock Buddy
+	 *
+	 * <p>Last Updated 9/11/23</p>
+	 * @throws IOException
+	 *
+	 * @author Nate Elison
+	 */
 	public FrontEnd() throws IOException {
 	}
 
+	/**
+	 * This method is used to launch the JavaFx program, if needed by the compiler.
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		launch(args);
 	}
 
+	/**
+	 * This method is used to build the nodes used in the JavaFx program.
+	 * The methods put together the global variable mainPane's top, center, and bottom sections.
+	 * It then places that mainPane in a scene, that scene on a stage, and finally that stage is displayed.
+	 *
+	 * @param primaryStage (Stage; stage the scene is placed on)
+	 */
 	@Override
 	public void start(Stage primaryStage) {
 		buildTopPane();
@@ -64,6 +77,9 @@ public class FrontEnd extends Application{
 		primaryStage.show();
 	}
 
+	/**
+	 * This method builds the top pane of the global mainPane BorderPane
+	 */
 	public void buildTopPane() {
 		Label title = new Label("Rock Buddy");
 		Label subTitle = new Label("Your rock collection companion app.\n" +
@@ -82,7 +98,7 @@ public class FrontEnd extends Application{
 		subTitle.setFont(new Font(15));
 		subTitle.setTextAlignment(TextAlignment.CENTER);
 		menuBar.getMenus().add(menu);
-		menu.getItems().addAll(view, add, edit, exit);
+		menu.getItems().addAll(add, edit, view, exit);
 
 		mainPane.setTop(topPane);
 
@@ -107,6 +123,9 @@ public class FrontEnd extends Application{
 		exit.setOnAction(event -> System.exit(0));
 	}
 
+	/**
+	 * This method builds the center pane of the global mainPane BorderPane
+	 */
 	public void buildCenterPane() {
 		VBox mainCenterpane = new VBox();
 		Button addSampleBt = new Button("Add Sample");
@@ -153,6 +172,9 @@ public class FrontEnd extends Application{
 		exitBt.setOnAction(event -> System.exit(0));
 	}
 
+	/**
+	 * This method builds the bottom pane of the global mainPane BorderPane
+	 */
 	public void buildBottomPane() {
 		Label byLine = new Label("By Nate Elison");
 		StackPane pane = new StackPane(byLine);
@@ -162,6 +184,15 @@ public class FrontEnd extends Application{
 		mainPane.setBottom(pane);
 	}
 
+	/**
+	 * This method builds and returns the BorderPane that displays the add sample form. It includes all
+	 * input objects, labels, and textfields.
+	 * the TextFields are displayed based on the general type selected, and the buttons call their
+	 * respective methods.
+	 *
+	 * @return borderPane (BorderPane; the pane that the add sample form is built on)
+	 * @throws FileNotFoundException
+	 */
 	public BorderPane buildAddSamplePane() throws FileNotFoundException {
 		int vGap = 10;
 		int hGap = 5;
@@ -254,7 +285,6 @@ public class FrontEnd extends Application{
 
 		imageDescription.setPromptText("Add photo caption");
 		newImageFileName.setPromptText("Photo file name");
-		//TODO fix width of add picture text fields
 //		imageDescription.getStyleClass().add("#photo-text-field");
 //		newImageFileName.getStyleClass().add("photo-text-field");
 		imageDescription.setMaxWidth(100);
@@ -409,9 +439,9 @@ public class FrontEnd extends Application{
 			if (nameTf.getText() != null)
 				rockName = nameTf.getText();
 
-			String id = generateId(generalType);
-			if (idTf.getText() != null)
-				id = idTf.getText();
+			String id = idTf.getText();
+			if (collection.containsKey(id) || id.equals(""))
+				id = generateId(generalType);
 
 			String location = " ";
 			if (locationFoundTF.getText() != null)
@@ -490,7 +520,13 @@ public class FrontEnd extends Application{
 		return borderPane;
 	}
 
-	public BorderPane buildCollectionPane() throws IOException {
+	/**
+	 * This method builds and returns the BorderPane that displays the view collection table.
+	 * It includes the table, and the inputs associated such as the edit, remove, and view buttons,
+	 * the filter menu, and the fossil filter radio buttons.
+	 * @return pane (BorderPane; the pane that the table and inputs are built upon)
+	 */
+	public BorderPane buildCollectionPane() {
 		System.out.println(collection.size());
 		BorderPane pane = new BorderPane();
 		Label title = new Label("Collection:");
@@ -534,8 +570,6 @@ public class FrontEnd extends Application{
 		rockNameCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("rockName"));
 		rockIdCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("id"));
 
-//		rockIdCl.setCellValueFactory(collection -> collection.);
-
 		rockTypeCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("rockTypeString"));
 		locationFoundCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("location"));
 		rockCompositionCl.setCellValueFactory(new PropertyValueFactory<Sample, String>("composition"));
@@ -567,7 +601,6 @@ public class FrontEnd extends Application{
 				rockTextureCl, rockStructureCl, rockSizeCl, dateLoggedCl);
 		tableView.setMaxWidth(902);
 
-		// TODO build filter pane
 		HBox bottomPane = new HBox();
 		CheckBox name = new CheckBox("Name");
 		CheckBox id = new CheckBox("Id");
@@ -583,7 +616,6 @@ public class FrontEnd extends Application{
 		CheckBox cleavages = new CheckBox("Cleavages");
 		CheckBox date = new CheckBox("Date Logged");
 
-//		CheckBox fossilContent = new CheckBox("Fossil Content");
 		CheckBox size = new CheckBox("Size");
 
 		MenuButton columnsMenu = 			new MenuButton("Show/Hide Columns");
@@ -771,12 +803,11 @@ public class FrontEnd extends Application{
 			tableView.setMinHeight(scrollPane.getHeight());
 		});
 
-		// TODO Edit/remove buttons action
 		editBt.setOnAction(event -> {
 			selectedSample = tableView.getSelectionModel().getSelectedItem();
 			try {
 				editSample();
-			} catch (FileNotFoundException | InterruptedException e) {
+			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
 			Stage stage = (Stage) editBt.getScene().getWindow();
@@ -791,6 +822,12 @@ public class FrontEnd extends Application{
 			stage.setScene(areYouSure);
 			stage.setTitle("Remove Sample");
 			stage.show();
+			areYouSure.getStylesheets().add("addSceneStyles.css");
+
+
+			Stage collectionStage = (Stage) editBt.getScene().getWindow();
+			collectionStage.close();
+
 		});
 		viewBt.setOnAction(event -> {
 			try {
@@ -812,6 +849,16 @@ public class FrontEnd extends Application{
 		return pane;
 	}
 
+	/**
+	 * This method builds and returns the BorderPane that displays the edit sample form. It includes all
+	 * input objects, labels, and textfields.
+	 * The TextFields are displayed based on the general type selected, and the buttons call their
+	 * respective methods.
+	 *
+	 * @param sample (Sample; the sample to be edited)
+	 * @return borderPane (BorderPane; the pane the form is built upon)
+	 * @throws FileNotFoundException
+	 */
 	public BorderPane buildEditSamplePane(Sample sample) throws FileNotFoundException {
 		int vGap = 10;
 		int hGap = 5;
@@ -890,6 +937,8 @@ public class FrontEnd extends Application{
 		sizeTf.setText(sample.getSize());
 		otherFeatures.setText(sample.getOtherFeatures());
 		otherFeatures.setWrapText(true);
+
+		idTf.setEditable(false); //Changing the id is fucking things up. Will work around this in a future update.
 
 		// VBoxes to hold labels and TFs
 		VBox nameBox = new VBox();
@@ -1175,9 +1224,7 @@ public class FrontEnd extends Application{
 			if (nameTf.getText() != null)
 				rockName = nameTf.getText();
 
-			String id = generateId(generalType);
-			if (idTf.getText() != null)
-				id = idTf.getText();
+			String id = idTf.getText();
 
 			String location = "";
 			if (locationFoundTF.getText() != null)
@@ -1246,7 +1293,6 @@ public class FrontEnd extends Application{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			// TODO display updated window
 			Stage stage = (Stage) applyBt.getScene().getWindow();
 
 			stage.close();
@@ -1266,6 +1312,14 @@ public class FrontEnd extends Application{
 		return borderPane;
 	}
 
+	/**
+	 * This method builds and returns the BorderPane that displays the view sample form. It includes all
+	 * input objects, labels, and textfields.
+	 *
+	 * @param sample (Sample; the sample to be viewed)
+	 * @return borderPane (BorderPane; the pane the form is built upon)
+	 * @throws FileNotFoundException
+	 */
 	public BorderPane buildViewSamplePane(Sample sample) throws FileNotFoundException {
 		int vGap = 10;
 		int hGap = 5;
@@ -1458,10 +1512,10 @@ public class FrontEnd extends Application{
 		VBox picturePaneCenter = new VBox();
 		HBox photoButtons = new HBox(leftBt, rightBt);
 		picturePaneCenter.getChildren().addAll(imageView, imageName, imageCaption, photoButtons);
-		photoButtons.setSpacing(290);
+		photoButtons.setSpacing(10);
 		photoButtons.setMinWidth(360);
 		photoButtons.setMaxWidth(360);
-		photoButtons.setAlignment(Pos.CENTER);
+		photoButtons.setAlignment(Pos.CENTER_LEFT);
 
 		addImage.setPadding(new Insets(40, 0, 0 , 0));
 		picturePaneCenter.setSpacing(5);
@@ -1544,7 +1598,7 @@ public class FrontEnd extends Application{
 			try {
 				selectedSample = sample;
 				editSample();
-			} catch (FileNotFoundException | InterruptedException e) {
+			} catch (FileNotFoundException e) {
 				throw new RuntimeException(e);
 			}
 			Stage stage = (Stage) editBt.getScene().getWindow();
@@ -1558,6 +1612,14 @@ public class FrontEnd extends Application{
 	}
 
 	// Main Menu action methods
+
+	/**
+	 * This method is called when the add sample button is clicked. It builds a borderPane using the
+	 * buildAddSamplePane method, places that pane on a scrollpane, styles it, adds it to a scene,
+	 * adds that scene to a stage, which is finally displayed.
+	 *
+	 * @throws FileNotFoundException
+	 */
 	public void addSample() throws FileNotFoundException {
 		BorderPane borderPane = buildAddSamplePane();
 		ScrollPane scrollPane = new ScrollPane(borderPane);
@@ -1574,13 +1636,22 @@ public class FrontEnd extends Application{
 		stage.setTitle("New Sample");
 		stage.show();
 	}
+
+	/**
+	 * This method is called when a view collection button is clicked. It updates the global Object collection, by
+	 * sending a sample to the server w the corresponding sendCollectionCode, so the backend knows to start sending samples.
+	 * The updateCollection method is called to accept those samples.
+	 * Once the collection has been updated, the buildCollectionPane is called, which returns a BorderPane. That pane
+	 * is added displayed.
+	 *
+	 * @throws IOException
+	 */
 	public void viewCollection() throws IOException {
         ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 		toServer.writeObject(new Sample(sendCollectionCode));
         toServer.flush();
         updateCollection();
 		viewCollectionBorderPane = buildCollectionPane();
-		ScrollPane scrollPane = new ScrollPane(viewCollectionBorderPane);
 		viewCollectionBorderPane.getStyleClass().add("container");
 
 		viewCollectionBorderPane.setMinWidth(viewCollectionPaneSize);
@@ -1593,7 +1664,13 @@ public class FrontEnd extends Application{
 		stage.setTitle("View Collection");
 		stage.show();
 	}
-	public void editSample() throws FileNotFoundException, InterruptedException {
+
+	/**
+	 * This method is called when an edit Sample button is clicked. It calls upon the buildEditSamplePane and
+	 *  displays the returned BorderPane.
+	 * @throws FileNotFoundException
+	 */
+	public void editSample() throws FileNotFoundException {
 
 		BorderPane borderPane = buildEditSamplePane(selectedSample);
 		ScrollPane scrollPane = new ScrollPane(borderPane);
@@ -1610,6 +1687,13 @@ public class FrontEnd extends Application{
 		stage.setTitle("Edit Sample");
 		stage.show();
 	}
+
+	/**
+	 * This method is called when a view sample button is clicked. It calls upon the buildViewSamplePane and
+	 *  displays the returned BorderPane.
+	 * @param sample (Sample; this
+	 * @throws FileNotFoundException
+	 */
 	public void viewSample(Sample sample) throws FileNotFoundException{
 
 		BorderPane borderPane = buildViewSamplePane(sample);
@@ -1627,6 +1711,13 @@ public class FrontEnd extends Application{
 		stage.setTitle("View Sample");
 		stage.show();
 	}
+
+	/**
+	 * This method is called when the submit sample button is clicked. It sends the input sample to the server and
+	 * displays a window saying the sample was submitted.
+	 *
+	 * @param sample (Sample; the sample to be sent to the server)
+	 */
 	public void submitSample(Sample sample) {
 		try {
 			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
@@ -1635,23 +1726,81 @@ public class FrontEnd extends Application{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("Sample to be submitted has a photoarraylist of size: " + sample.getSamplePhotos().size());
 		messageAndOKButtonPane("Sample Submitted Successfully!", "Sample Submission");
 
 	}
 
-	// TODO generate ID
+	/**
+	 * This method is called when a user adds a sample. It generates and returns an id to be used if no id is input or
+	 * if the id matches one already used in the collection. The Id is generated by the number of samples in the collection
+	 * with the same rock type as the sample.
+	 *
+	 * @param rockType (int; the rocktype of the sample in int form (0 = sed, 1 = ign, 2 = meta, 3 = unknown))
+	 * @return generatedId (String; the auto generated id.)
+	 */
 	public String generateId(int rockType) {
-		String generatedId = "";
-		int count = 0;
-//		collection.forEach((id, sample) -> {
-//			if (sample.)
-//		});
+		try {
+			ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
+			toServer.writeObject(new Sample(sendCollectionCode));
+			toServer.flush();
+			updateCollection(); // Ensure collection has been updated.
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
+		String generatedId = "";
+		AtomicInteger count = new AtomicInteger();
+		collection.forEach((id, sample) -> {
+			if (sample.getGeneralType() == rockType)
+				count.getAndIncrement();
+		});
+		count.getAndIncrement();
+
+		System.out.println(count);
+		switch (rockType) {
+			case 0:
+				generatedId = "sed" + count;
+				break;
+			case 1:
+				generatedId = "ign" + count;
+				break;
+			case 2:
+				generatedId = "meta" + count;
+				break;
+			case 3:
+				generatedId = "ukn" + count;
+				break;
+		}
+
+		// Ensure generated key is not already in the collection
+		while (collection.containsKey(generatedId)) {
+			count.getAndIncrement();
+			switch (rockType) {
+				case 0:
+					generatedId = "sed" + count;
+					break;
+				case 1:
+					generatedId = "ign" + count;
+					break;
+				case 2:
+					generatedId = "meta" + count;
+					break;
+				case 3:
+					generatedId = "ukn" + count;
+					break;
+			}
+		}
 
 		return generatedId;
 	}
 
+	/**
+	 * This method displays a new window with a short message and an OK button. The message and the window title are
+	 * passed as parameters.
+	 *
+	 * @param message
+	 * @param title
+	 */
 	public void messageAndOKButtonPane(String message, String title) {
 		VBox vBox = new VBox();
 		Label submitted = new Label(message);
@@ -1694,13 +1843,19 @@ public class FrontEnd extends Application{
 		vBox.setPadding(new Insets(15));
 		areYouSureLb.setFont(new Font(14));
 		finalLb.setFont(new Font(14));
+		vBox.getStyleClass().add("container");
+
 
 		noGoBackBt.setOnAction(event -> {
 			Stage stage = (Stage) noGoBackBt.getScene().getWindow();
 			stage.close();
+			try {
+				viewCollection();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		});
 
-		//TODO delete action Test this shit and make it so the window closes upon deletion
 		deleteBt.setOnAction(event -> {
 			try {
 				sendSampleForDeletion(sampleToBeDeleted);
@@ -1709,6 +1864,11 @@ public class FrontEnd extends Application{
 			}
 			Stage stage = (Stage) noGoBackBt.getScene().getWindow();
 			stage.close();
+			try {
+				viewCollection();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			messageAndOKButtonPane("Sample " + sampleToBeDeleted.getRockName() + " deleted.", "Sample Deleted");
 		});
 
@@ -1814,8 +1974,6 @@ public class FrontEnd extends Application{
 			try {
 				editSample();
 			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			stage.close();

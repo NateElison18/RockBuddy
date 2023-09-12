@@ -20,7 +20,6 @@ public class Sample implements Serializable {
 	String fossilDescription;
 	String otherFeatures;
 	String size;
-	//TODO implement imageFilePaths
 	ArrayList<SamplePhoto> samplePhotos = new ArrayList<SamplePhoto>();
 
 	boolean fossilContent;
