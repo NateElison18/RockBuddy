@@ -9,6 +9,7 @@ Apart from demonstrating what I learned in Industry Projects at Southwest Tech, 
 
 ## How to Run
 To run the program, users will need to have the BackEnd.java, FrontEnd.java, samples.txt, and css files, along with the Images folder. JavaFx is also needed to run the project. Once the user is all set up, they will need to run the BackEnd before running the FrontEnd. From there the user can interact with the gui to add samples. The samples.txt file included in the repo has a few of my own Samples added to the collection. The program can remove these if they wish.
+Please keep in mind, to add a photo to a sample, the image file must be added to the Images folder first.
 
 ## Tests
 Due to the fact that only one method returns a value that is not a JavaFx element, no JUnit tests were written. 
