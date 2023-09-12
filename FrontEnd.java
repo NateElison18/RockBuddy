@@ -269,7 +269,6 @@ public class FrontEnd extends Application{
 		String fileName = "Images/placeholder.jpg";
 		FileInputStream imageInputStream = new FileInputStream(new File(fileName));
 		Image image = new Image(imageInputStream);
-		System.out.println("W: " + image.getWidth() + "H: " + image.getHeight());
 		ImageView imageView = new ImageView(image);
 		Button photoSubmitBt = new Button("Add photo");
 		TextField newImageFileName = new TextField();
@@ -528,7 +527,6 @@ public class FrontEnd extends Application{
 	 * @return pane (BorderPane; the pane that the table and inputs are built upon)
 	 */
 	public BorderPane buildCollectionPane() {
-		System.out.println(collection.size());
 		BorderPane pane = new BorderPane();
 		Label title = new Label("Collection:");
 		TableView<Sample> tableView = new TableView<>();
@@ -1193,12 +1191,8 @@ public class FrontEnd extends Application{
 		photoRemoveBt.setOnAction(event -> {
 			String filePath = "Images/" + newImageFileName.getText();
 			boolean found = false;
-			System.out.println("About to start loop");
 			for (int i = 0; i < samplePhotos.size(); i++) {
-				System.out.println(filePath);
-				System.out.println(samplePhotos.get(i).getPhotoPathName());
 				if (samplePhotos.get(i).getPhotoPathName().equals(filePath)){
-
 					found = true;
 					samplePhotos.remove(i);
 					break;
@@ -1491,7 +1485,6 @@ public class FrontEnd extends Application{
 			imageInputStream = new FileInputStream(fileName);
 			imageName.setText("Placeholder Image");
 			imageCaption.setText("No custom photo found.");
-			System.out.println("No pictures found");
 			e.printStackTrace();
 		}
 		Image image = new Image(imageInputStream);
@@ -1555,7 +1548,6 @@ public class FrontEnd extends Application{
 			if (photoToDisplayIndex >= samplePhotos.size())
 				photoToDisplayIndex = 0;
 			try {
-				System.out.println("Index at " + photoToDisplayIndex);
 				String updatedFilePath = samplePhotos.get(photoToDisplayIndex).getPhotoPathName();
 				String updatedImageCaption = samplePhotos.get(photoToDisplayIndex).getPhotoDescription();
 				FileInputStream updatedImageInputStream = new FileInputStream(updatedFilePath);
@@ -1573,14 +1565,10 @@ public class FrontEnd extends Application{
 		});
 		leftBt.setOnAction(event -> {
 			photoToDisplayIndex--;
-			System.out.println("Index at " + photoToDisplayIndex + " before the if statement");
 			if (photoToDisplayIndex < 0) {
 				photoToDisplayIndex = samplePhotos.size() - 1;
-				System.out.println("Inside the if statement. Setting index to 1 less than the array list size");
-
 			}
 			try {
-				System.out.println("index at " + photoToDisplayIndex);
 				String updatedFilePath = samplePhotos.get(photoToDisplayIndex).getPhotoPathName();
 				String updatedImageCaption = samplePhotos.get(photoToDisplayIndex).getPhotoDescription();
 				FileInputStream updatedImageInputStream = new FileInputStream(updatedFilePath);
@@ -2017,9 +2005,7 @@ public class FrontEnd extends Application{
 			while (true) {
 				ArrayList<SamplePhoto> samplePhotos = new ArrayList<>();
 				samplePhotos.clear();
-				System.out.println("We're in the updatecollection while Loop");
 				int type = fromServer.readInt(); // Outside Sample constructor method below, to break out of the loop once the key int is sent (100).
-				System.out.println("received type " + type);
 				if (type == terminateCode) return; // Check for terminate code, end method if received.
 				Sample newSample = new Sample(type, fromServer.readUTF(),
 						fromServer.readUTF(), fromServer.readUTF(), fromServer.readUTF(),
@@ -2029,7 +2015,6 @@ public class FrontEnd extends Application{
 						fromServer.readUTF(), fromServer.readBoolean(), fromServer.readUTF());
 				// Build the samplePhotos ArrayList
 				int samplePhotoArraySize = fromServer.readInt();
-				System.out.println("SamplePhoto array size in the update collection method: " + samplePhotoArraySize);
 				for (int i = 0; i < samplePhotoArraySize; i++)
 					samplePhotos.add(new SamplePhoto(fromServer.readUTF(), fromServer.readUTF()));
 				newSample.setSamplePhotos(samplePhotos);
@@ -2037,8 +2022,6 @@ public class FrontEnd extends Application{
 				String dateLogged = fromServer.readUTF();
 				newSample.setDateLogged(dateLogged);
 				collection.put(newSample.getId(), newSample);
-				System.out.println("Adding sample named: " + collection.get(newSample.getId()).getRockName() + " with ID " + newSample.getId());
-				System.out.println(collection.size());
 			}
 	}
 	
@@ -2054,13 +2037,9 @@ public class FrontEnd extends Application{
 	public void sendEditedSample(Sample editedSample, String originalId) throws IOException {
 		ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 		toServer.writeObject(new Sample(editSampleCode)); // Send Sample w code so backend knows to expect a Sample that has been edited.
-		System.out.println("Sending edited Sample");
 		toServer.writeObject(editedSample);
-		System.out.println("Sending og id");
 		toServer.writeUTF(originalId); // Send the original id, just in case the id was edited
 		toServer.flush();
-		System.out.println("All info sent");
-
 	}
 	
 	/**
@@ -2073,7 +2052,6 @@ public class FrontEnd extends Application{
 	public void sendSampleForDeletion(Sample sampleToBeDeleted) throws IOException {
 		ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
 		toServer.writeObject(new Sample(deleteSampleCode)); // Send Sample w code so backend knows to expect the id of a sample to be deleted.
-		System.out.println("Id of sample to be deleted");
 		toServer.writeUTF(sampleToBeDeleted.getId());
 		toServer.flush();
 	}
