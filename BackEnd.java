@@ -10,16 +10,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
-	/**
-	 * <h1>Backend</h1>
-	 * This class runs the BackEnd constructor and contains all the 'backend' code that receives Samples, 
-	 * saves the collection to the .txt file, reads the collection off the .txt file, and edits the collection.
-	 *
-	 * <p>Last Updated 9/12/23</p>
-	 * @throws IOException
-	 *
-	 * @author Nate Elison
-	 */
+/**
+ * <h1>Backend</h1>
+ * This class runs the BackEnd constructor and contains all the 'backend' code that receives Samples, 
+ * saves the collection to the .txt file, reads the collection off the .txt file, and edits the collection.
+ *
+ * <p>Last Updated 9/12/23</p>
+ * @throws IOException
+ *
+ * @author Nate Elison
+*/
 public class BackEnd {
     static HashMap<String, Sample> collection = new HashMap<>();
 
@@ -59,7 +59,6 @@ public class BackEnd {
             try { // Update collection at the start of the program
                 objectFromFile = new ObjectInputStream(new FileInputStream("samples.txt"));
                 collection = (HashMap<String, Sample>) objectFromFile.readObject();
-                System.out.println(collection.size());
             } catch (IOException | ClassNotFoundException | NullPointerException e) {
                 e.printStackTrace();
             }
@@ -75,7 +74,6 @@ public class BackEnd {
                     if (sampleReceived.getGeneralType() == sendCollectionCode) { // Check for the code in the generalType of the sample and perform the action indicated.
                         try {
                             collection.forEach((id, sample) -> {
-                                System.out.println("Pulled sample named " + sample.getRockName());
                                 try {
                                     outputToClient.writeInt(sample.getGeneralType());
                                     outputToClient.writeUTF(sample.getRockName());
@@ -97,15 +95,12 @@ public class BackEnd {
                                     // Sending info for the photoSamples
                                     ArrayList<SamplePhoto> samplePhotos = sample.getSamplePhotos();
                                     outputToClient.writeInt(samplePhotos.size());
-                                    System.out.println("Sample " + sample.getRockName() + " has a photo array list size of " + samplePhotos.size());
                                     for (int j = 0; j < samplePhotos.size(); j++) {
                                         outputToClient.writeUTF(samplePhotos.get(j).getPhotoPathName());
                                         outputToClient.writeUTF(samplePhotos.get(j).getPhotoDescription());
                                     }
-
                                     outputToClient.writeUTF(sample.getDateLogged());
                                     outputToClient.flush();
-                                    System.out.println("Sent sample named " + sample.getRockName());
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
